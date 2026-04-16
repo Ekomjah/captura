@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "echo \"no tests yet\"",
     "dev:web": "pnpm --filter frontend dev --host",
     "dev:api": "cd app/api && uv run uvicorn main:app --reload",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commitlint": "commitlint --edit"
   },
   "keywords": [],
   "author": "",

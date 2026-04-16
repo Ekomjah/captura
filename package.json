@@ -1,0 +1,20 @@
+{
+  "name": "captura",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:web": "pnpm --filter frontend dev --host",
+    "dev:api": "cd app/api && uv run uvicorn main:app --reload",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7"
+  }
+}

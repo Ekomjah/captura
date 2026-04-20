@@ -5,10 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"no tests yet\"",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit",
     "dev:web": "pnpm --filter frontend dev --host",
     "dev:api": "cd app/api && uv run uvicorn main:app --reload",
-    "prepare": "husky",
-    "commitlint": "commitlint --edit"
+    "precommit:frontend": "pnpm --filter frontend run lint",
+    "precommit:backend": "cd app/api && uv run ruff check .",
+    "precommit:all": "pnpm run precommit:frontend && pnpm run precommit:backend && pnpm run test"
   },
   "keywords": [],
   "author": "",

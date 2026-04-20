@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
@@ -9,60 +9,61 @@ from pydantic import BaseModel, Field
 app = FastAPI(title="Captura API", version="0.1.0")
 
 
-class ImageFormat(str, Enum):
+class VariantFormat(str, Enum):
     webp = "webp"
     jpeg = "jpeg"
     png = "png"
-    avif = "avif"
 
 
-class ImageVariant(BaseModel):
-    img_size: int = Field(..., description="Size in Bytes")
-    format: ImageFormat
+class VariantMeta(BaseModel):
+    file_size: int = Field(..., description="Size in Bytes")
+    format: VariantFormat
     download_url: str
     expires_at: datetime
 
 
-class ImageAsset(BaseModel):
+class AssetSummary(BaseModel):
     """image obj for an image upload"""
 
     id: str
-    uploaded_at: datetime
-    original_url: str
-    ocr_text: str | None = None
-    asset_variant: list[ImageVariant]
+    created_at: datetime
+    thumbnail_url: str
+    ocr_snippet: str | None = None
+    variants: list[VariantMeta]
 
 
-class UploadResult(BaseModel):
+class UploadResponse(BaseModel):
+    """resp model for the upload endpoint"""
+
     id: str
-    status: str = Field(..., examples=["uploading", "uploaded"])
+    status: str = Field(..., examples=["processing", "uploaded"])
     message: str
-    asset_uploaded: ImageAsset
+    asset_uploaded: AssetSummary
 
 
-class ImagesViewPage(BaseModel):
+class PaginatedAssetsResponse(BaseModel):
     """resp model for the history endpoint"""
 
-    images: list[ImageAsset]
+    images: list[AssetSummary]
     page: int = 1
     page_size: int
     total: int
 
 
 class SearchHit(BaseModel):
-    asset: ImageAsset
+    asset: AssetSummary
     matched_text: str
-    matched_context: str | None = None
+    match_context: str | None = None
 
 
-class SearchPage(BaseModel):
+class PaginatedSearchResponse(BaseModel):
     """resp for the ocr search endpoint"""
 
     items: list[SearchHit]
     page: int
     page_size: int
     total: int
-    query: int
+    query: str
 
 
 class ErrorResponse(BaseModel):
@@ -70,36 +71,43 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-@app.get("/")
-def read_root():
-    return {"message": "Captura API running"}
+def _fake_variant(fmt: VariantFormat) -> VariantMeta:
+    now = datetime.now(timezone.utc)
+    return VariantMeta(
+        format=fmt,
+        file_size=123456,
+        download_url=f"https://example.com/download/{uuid4()}?format={fmt.value}",
+        expires_at=now + timedelta(minutes=15),
+    )
 
 
-@app.post("/v1/upload", response_model=UploadResult, tags=["assets"])
-async def upload_file_v1(file: UploadFile = File(...)):
+def _fake_asset() -> AssetSummary:
+    now = datetime.now(timezone.utc)
+    return AssetSummary(
+        id=str(uuid4()),
+        created_at=now,
+        thumbnail_url="https://example.com/thumb/sample.webp",
+        ocr_snippet="ERR_CONNECTION_RESET in settings panel",
+        variants=[
+            _fake_variant(VariantFormat.webp),
+            _fake_variant(VariantFormat.jpeg),
+            _fake_variant(VariantFormat.png),
+        ],
+    )
+
+
+@app.post("/v1/upload", status_code=201, response_model=UploadResponse, tags=["assets"])
+async def upload_file(file: UploadFile = File(...)):
     try:
         if not file.filename:
             raise HTTPException(status_code=400, detail="No file uploaded")
         print(f"Successfully received file: {file.filename}")
 
-        return UploadResult(
+        return UploadResponse(
             id=str(uuid4()),
             status="uploaded",
             message="File uploaded successfully",
-            asset_uploaded=ImageAsset(
-                id=str(uuid4()),
-                uploaded_at=datetime.now(),
-                original_url=f"https://example.com/{file.filename}/uuid4()",
-                ocr_text=None,
-                asset_variant=[
-                    ImageVariant(
-                        img_size=204800,
-                        format=ImageFormat.webp,
-                        download_url=f"https://example.com/{file.filename}/uuid4()?format=webp",
-                        expires_at=datetime.now() + timedelta(minutes=15),
-                    )
-                ],
-            ),
+            asset_uploaded=_fake_asset(),
         )
     except HTTPException as e:
         raise e
@@ -107,90 +115,34 @@ async def upload_file_v1(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/v1/history", response_model=ImagesViewPage)
-async def get_history_v1(
+@app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])
+async def get_history(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
-    return ImagesViewPage(
-        images=[
-            ImageAsset(
-                id=str(uuid4()),
-                uploaded_at=datetime.now(),
-                original_url=f"https://example.com/image_{i}.png",
-                ocr_text="Sample OCR text",
-                asset_variant=[
-                    ImageVariant(
-                        img_size=204800,
-                        format=ImageFormat.webp,
-                        download_url=f"https://example.com/image_{i}.webp",
-                        expires_at=datetime.now() + timedelta(minutes=15),
-                    )
-                ],
-            )
-            for i in range((page - 1) * page_size, page * page_size)
-        ],
+    return PaginatedAssetsResponse(
+        images=[_fake_asset()],
         page=page,
         page_size=page_size,
         total=1000,
     )
 
 
-@app.get("/v1/search_assets", response_model=SearchPage)
+@app.get("/v1/search", response_model=PaginatedSearchResponse, tags=["search"])
 async def search_assets(
     q: Annotated[str, Query(min_length=1)],
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
-    return SearchPage(
-        items=[
-            SearchHit(
-                asset=ImageAsset(
-                    id=str(uuid4()),
-                    uploaded_at=datetime.now(),
-                    original_url=f"https://example.com/image_{i}.png",
-                    ocr_text="Sample OCR text containing " + q,
-                    asset_variant=[
-                        ImageVariant(
-                            img_size=204800,
-                            format=ImageFormat.webp,
-                            download_url=f"https://example.com/image_{i}.webp",
-                            expires_at=datetime.now() + timedelta(minutes=15),
-                        )
-                    ],
-                ),
-                matched_text=q,
-                matched_context="...Sample OCR text containing " + q + "...",
-            )
-            for i in range((page - 1) * page_size, page * page_size)
-        ],
+    fake_hit = SearchHit(
+        asset=_fake_asset(),
+        matched_text=q,
+        match_context=f"...context around '{q}'...",
+    )
+    return PaginatedSearchResponse(
+        items=[fake_hit],
         page=page,
         page_size=page_size,
         total=500,
         query=q,
     )
-
-
-# @app.get("/screenshots/{screenshot_id}")
-# def get_screenshot(screenshot_id: int):
-#     return screenshot_dict[screenshot_id]
-
-
-# @app.get("/get_by_timestamp")
-# def get_by_timestamp(timestamp):
-#     for screenshot in screenshot_dict:
-#         if screenshot_dict[screenshot]["timestamp"] == timestamp:
-#             return screenshot_dict[screenshot]
-
-#     return {"Error": "Value not found"}
-
-
-# @app.post("/add_screenshot/{img_id}")
-# def create_student(img_id: int, img: NewScreenshot):
-#     if img_id in screenshot_dict:
-#         return {"Error": "Object already exists"}
-#     screenshot_dict[img_id] = img
-#     return screenshot_dict[img_id]
-
-
-#

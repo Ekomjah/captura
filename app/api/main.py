@@ -13,6 +13,11 @@ from services.s3_service import map_s3_exception, upload_raw_file
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    force=True,  # important with uvicorn
+)
 
 
 class VariantFormat(str, Enum):

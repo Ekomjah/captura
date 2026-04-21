@@ -1,12 +1,23 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from dotenv import load_dotenv
+from fastapi import FastAPI, File, Query, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from services.s3_service import map_s3_exception, upload_raw_file
 
 app = FastAPI(title="Captura API", version="0.1.0")
+load_dotenv()
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    force=True,  # important with uvicorn
+)
 
 
 class VariantFormat(str, Enum):
@@ -29,16 +40,19 @@ class AssetSummary(BaseModel):
     created_at: datetime
     thumbnail_url: str
     ocr_snippet: str | None = None
+
     variants: list[VariantMeta]
 
 
 class UploadResponse(BaseModel):
     """resp model for the upload endpoint"""
 
-    id: str
+    asset_id: str
+    bucket: str
+    s3_key: str
+    content_type: str
+    size_bytes: int
     status: str = Field(..., examples=["processing", "uploaded"])
-    message: str
-    asset_uploaded: AssetSummary
 
 
 class PaginatedAssetsResponse(BaseModel):
@@ -71,6 +85,21 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
+class UploadException(Exception):
+    def __init__(self, error: str, detail: str, status_code: int = 500):
+        self.error = error
+        self.detail = detail
+        self.status_code = status_code
+
+
+@app.exception_handler(UploadException)
+async def upload_exception_handler(request, exc: UploadException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(error=exc.error, detail=exc.detail).model_dump(),
+    )
+
+
 def _fake_variant(fmt: VariantFormat) -> VariantMeta:
     now = datetime.now(timezone.utc)
     return VariantMeta(
@@ -96,23 +125,62 @@ def _fake_asset() -> AssetSummary:
     )
 
 
-@app.post("/v1/upload", status_code=201, response_model=UploadResponse, tags=["assets"])
+@app.post(
+    "/v1/upload",
+    status_code=201,
+    response_model=UploadResponse,
+    responses={
+        400: {
+            "model": ErrorResponse,
+            "description": "Bad request, e.g. no file uploaded or invalid file type",
+        },
+        500: {"model": ErrorResponse, "description": "Error during file upload"},
+    },
+    tags=["assets"],
+)
 async def upload_file(file: UploadFile = File(...)):
     try:
         if not file.filename:
-            raise HTTPException(status_code=400, detail="No file uploaded")
-        print(f"Successfully received file: {file.filename}")
+            raise UploadException(
+                error="ValidationError",
+                detail="No file uploaded",
+                status_code=400,
+            )
+
+        file_content = await file.read()
+        content_type = file.content_type or "application/octet-stream"
+        upload_result = upload_raw_file(
+            filename=file.filename,
+            file_bytes=file_content,
+            content_type=content_type,
+        )
+        logger.info(
+            {
+                "event": "upload_file",
+                "asset_id": upload_result.asset_id,
+                "bucket": upload_result.bucket,
+                "s3_key": upload_result.s3_key,
+                "filename": file.filename,
+            }
+        )
 
         return UploadResponse(
-            id=str(uuid4()),
+            asset_id=upload_result.asset_id,
+            bucket=upload_result.bucket,
+            s3_key=upload_result.s3_key,
+            content_type=upload_result.content_type,
+            size_bytes=upload_result.size_bytes,
             status="uploaded",
-            message="File uploaded successfully",
-            asset_uploaded=_fake_asset(),
         )
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except UploadException:
+        raise
+    except Exception as exc:
+        error, detail, status_code = map_s3_exception(exc)
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        )
 
 
 @app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])

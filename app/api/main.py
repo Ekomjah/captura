@@ -13,6 +13,15 @@ from pydantic import BaseModel, Field
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
 
+s3_client = boto3.client(
+    "s3",
+    region_name=os.environ["AWS_DEFAULT_REGION"],
+    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+)
+bucket_name = os.environ["S3_BUCKET_NAME"]
+# region = os.environ["AWS_DEFAULT_REGION"]
+
 
 class VariantFormat(str, Enum):
     webp = "webp"
@@ -141,44 +150,38 @@ async def upload_file(file: UploadFile = File(...)):
                 status_code=400,
             )
 
-        s3_client = boto3.client(
-            "s3",
-            region_name=os.environ["AWS_DEFAULT_REGION"],
-            aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-        )
-        bucket_name = os.environ["S3_BUCKET_NAME"]
-        # region = os.environ["AWS_DEFAULT_REGION"]
         s3_asset_id = uuid4()
         s3_key = f"uploads/raw/{s3_asset_id}/{file.filename}"
         # public_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
         file_content = await file.read()
         size = len(file_content)
-        type = file.content_type
+        content_type = file.content_type or "application/octet-stream"
 
         s3_client.put_object(
             Bucket=bucket_name,
             Key=s3_key,
             Body=file_content,
-            ContentType=file.content_type,
+            ContentType=content_type,
         )
 
-        print(f"Successfully uploaded file: {file.filename}")
+        print(
+            f"Successfully uploaded file(id:{s3_asset_id}) {file.filename} of bucket: {bucket_name} and key: {s3_key}"
+        )
 
         return UploadResponse(
             asset_id=str(s3_asset_id),
             bucket=bucket_name,
             s3_key=s3_key,
-            content_type=str(type),
+            content_type=str(content_type),
             size_bytes=size,
-            status="uploaded"
+            status="uploaded",
         )
     except UploadException as e:
         raise e  # re-reraising the error
-    except Exception as e:
+    except Exception:
         raise UploadException(
             error="InternalServerError",
-            detail=str(e),
+            detail="Something went wrong. Please try again later.",
             status_code=500,
         )
 

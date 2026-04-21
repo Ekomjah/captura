@@ -1,8 +1,7 @@
-"""Tests for Story 1.2 — MVP API Contracts and OpenAPI (mock backend)."""
-
-from datetime import datetime
+"""Tests for Story 1.2 and Story 2.1 API contracts."""
 
 from fastapi.testclient import TestClient
+import main
 from main import app
 
 client = TestClient(app)
@@ -22,27 +21,24 @@ def test_openapi_lists_mvp_paths_and_tags():
 
 
 def test_post_upload_returns_201_and_asset_contract():
+    class _FakeUploadResult:
+        asset_id = "asset-123"
+        bucket = "captura-test"
+        s3_key = "uploads/raw/asset-123/screenshot.png"
+        content_type = "image/png"
+        size_bytes = 8
+
+    main.upload_raw_file = lambda filename, file_bytes, content_type: _FakeUploadResult()
     files = {"file": ("screenshot.png", b"\x89PNG\r\n\x1a\n", "image/png")}
     r = client.post("/v1/upload", files=files)
     assert r.status_code == 201
     data = r.json()
-    assert "id" in data and data["id"]
+    assert data["asset_id"] == "asset-123"
+    assert data["bucket"] == "captura-test"
+    assert data["s3_key"] == "uploads/raw/asset-123/screenshot.png"
+    assert data["content_type"] == "image/png"
+    assert data["size_bytes"] == 8
     assert data["status"] == "uploaded"
-    assert "message" in data
-    asset = data["asset_uploaded"]
-    assert asset["id"]
-    assert asset["thumbnail_url"]
-    assert asset["ocr_snippet"] is not None
-    datetime.fromisoformat(asset["created_at"].replace("Z", "+00:00"))
-    variants = asset["variants"]
-    assert len(variants) == 3
-    formats = {v["format"] for v in variants}
-    assert formats == {"webp", "jpeg", "png"}
-    for v in variants:
-        assert v["file_size"] == 123456
-        assert v["download_url"].startswith("https://example.com/download/")
-        assert "format=" in v["download_url"]
-        datetime.fromisoformat(v["expires_at"].replace("Z", "+00:00"))
 
 
 def test_post_upload_rejects_empty_filename():

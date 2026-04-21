@@ -1,26 +1,18 @@
-import os
+import logging
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
-import boto3
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from services.s3_service import map_s3_exception, upload_raw_file
 
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
-
-s3_client = boto3.client(
-    "s3",
-    region_name=os.environ["AWS_DEFAULT_REGION"],
-    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-)
-bucket_name = os.environ["S3_BUCKET_NAME"]
-# region = os.environ["AWS_DEFAULT_REGION"]
+logger = logging.getLogger(__name__)
 
 
 class VariantFormat(str, Enum):
@@ -150,39 +142,37 @@ async def upload_file(file: UploadFile = File(...)):
                 status_code=400,
             )
 
-        s3_asset_id = uuid4()
-        s3_key = f"uploads/raw/{s3_asset_id}/{file.filename}"
-        # public_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
         file_content = await file.read()
-        size = len(file_content)
         content_type = file.content_type or "application/octet-stream"
-
-        s3_client.put_object(
-            Bucket=bucket_name,
-            Key=s3_key,
-            Body=file_content,
-            ContentType=content_type,
+        upload_result = upload_raw_file(
+            filename=file.filename,
+            file_bytes=file_content,
+            content_type=content_type,
         )
-
-        print(
-            f"Successfully uploaded file(id:{s3_asset_id}) {file.filename} of bucket: {bucket_name} and key: {s3_key}"
+        logger.info(
+            "upload_success asset_id=%s bucket=%s s3_key=%s filename=%s",
+            upload_result.asset_id,
+            upload_result.bucket,
+            upload_result.s3_key,
+            file.filename,
         )
 
         return UploadResponse(
-            asset_id=str(s3_asset_id),
-            bucket=bucket_name,
-            s3_key=s3_key,
-            content_type=str(content_type),
-            size_bytes=size,
+            asset_id=upload_result.asset_id,
+            bucket=upload_result.bucket,
+            s3_key=upload_result.s3_key,
+            content_type=upload_result.content_type,
+            size_bytes=upload_result.size_bytes,
             status="uploaded",
         )
-    except UploadException as e:
-        raise e  # re-reraising the error
-    except Exception:
+    except UploadException:
+        raise
+    except Exception as exc:
+        error, detail, status_code = map_s3_exception(exc)
         raise UploadException(
-            error="InternalServerError",
-            detail="Something went wrong. Please try again later.",
-            status_code=500,
+            error=error,
+            detail=detail,
+            status_code=status_code,
         )
 
 

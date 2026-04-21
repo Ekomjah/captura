@@ -171,6 +171,7 @@ async def upload_file(file: UploadFile = File(...)):
             s3_key=s3_key,
             content_type=str(type),
             size_bytes=size,
+            status="uploaded"
         )
     except UploadException as e:
         raise e  # re-reraising the error

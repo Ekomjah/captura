@@ -34,16 +34,19 @@ class AssetSummary(BaseModel):
     created_at: datetime
     thumbnail_url: str
     ocr_snippet: str | None = None
+
     variants: list[VariantMeta]
 
 
 class UploadResponse(BaseModel):
     """resp model for the upload endpoint"""
 
-    id: str
+    asset_id: str
+    bucket: str
+    s3_key: str
+    content_type: str
+    size_bytes: int
     status: str = Field(..., examples=["processing", "uploaded"])
-    message: str
-    asset_uploaded: AssetSummary
 
 
 class PaginatedAssetsResponse(BaseModel):
@@ -145,11 +148,13 @@ async def upload_file(file: UploadFile = File(...)):
             aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
         )
         bucket_name = os.environ["S3_BUCKET_NAME"]
-        region = os.environ["AWS_DEFAULT_REGION"]
-        asset_id = uuid4()
-        s3_key = f"uploads/raw/{asset_id}/{file.filename}"
-        public_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
+        # region = os.environ["AWS_DEFAULT_REGION"]
+        s3_asset_id = uuid4()
+        s3_key = f"uploads/raw/{s3_asset_id}/{file.filename}"
+        # public_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
         file_content = await file.read()
+        size = len(file_content)
+        type = file.content_type
 
         s3_client.put_object(
             Bucket=bucket_name,
@@ -161,16 +166,11 @@ async def upload_file(file: UploadFile = File(...)):
         print(f"Successfully uploaded file: {file.filename}")
 
         return UploadResponse(
-            id=str(uuid4()),
-            status="uploaded",
-            message="File uploaded successfully",
-            asset_uploaded=AssetSummary(
-                id=str(asset_id),
-                created_at=datetime.now(timezone.utc),
-                thumbnail_url=public_url,
-                ocr_snippet=None,
-                variants=[],
-            ),
+            asset_id=str(s3_asset_id),
+            bucket=bucket_name,
+            s3_key=s3_key,
+            content_type=str(type),
+            size_bytes=size,
         )
     except UploadException as e:
         raise e  # re-reraising the error

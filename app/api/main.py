@@ -150,11 +150,13 @@ async def upload_file(file: UploadFile = File(...)):
             content_type=content_type,
         )
         logger.info(
-            "upload_success asset_id=%s bucket=%s s3_key=%s filename=%s",
-            upload_result.asset_id,
-            upload_result.bucket,
-            upload_result.s3_key,
-            file.filename,
+            {
+                "event": "upload_file",
+                "asset_id": upload_result.asset_id,
+                "bucket": upload_result.bucket,
+                "s3_key": upload_result.s3_key,
+                "filename": file.filename,
+            }
         )
 
         return UploadResponse(

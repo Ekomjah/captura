@@ -1,12 +1,17 @@
+import os
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+import boto3
+from dotenv import load_dotenv
+from fastapi import FastAPI, File, Query, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="Captura API", version="0.1.0")
+load_dotenv()
 
 
 class VariantFormat(str, Enum):
@@ -71,6 +76,21 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
+class UploadException(Exception):
+    def __init__(self, error: str, detail: str, status_code: int = 500):
+        self.error = error
+        self.detail = detail
+        self.status_code = status_code
+
+
+@app.exception_handler(UploadException)
+async def upload_exception_handler(request, exc: UploadException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(error=exc.error, detail=exc.detail).model_dump(),
+    )
+
+
 def _fake_variant(fmt: VariantFormat) -> VariantMeta:
     now = datetime.now(timezone.utc)
     return VariantMeta(
@@ -96,23 +116,70 @@ def _fake_asset() -> AssetSummary:
     )
 
 
-@app.post("/v1/upload", status_code=201, response_model=UploadResponse, tags=["assets"])
+@app.post(
+    "/v1/upload",
+    status_code=201,
+    response_model=UploadResponse,
+    responses={
+        400: {
+            "model": ErrorResponse,
+            "description": "Bad request, e.g. no file uploaded or invalid file type",
+        },
+        500: {"model": ErrorResponse, "description": "Error during file upload"},
+    },
+    tags=["assets"],
+)
 async def upload_file(file: UploadFile = File(...)):
     try:
         if not file.filename:
-            raise HTTPException(status_code=400, detail="No file uploaded")
-        print(f"Successfully received file: {file.filename}")
+            raise UploadException(
+                error="ValidationError",
+                detail="No file uploaded",
+                status_code=400,
+            )
+
+        s3_client = boto3.client(
+            "s3",
+            region_name=os.environ["AWS_DEFAULT_REGION"],
+            aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        )
+        bucket_name = os.environ["S3_BUCKET_NAME"]
+        region = os.environ["AWS_DEFAULT_REGION"]
+        asset_id = uuid4()
+        s3_key = f"uploads/raw/{asset_id}/{file.filename}"
+        public_url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{s3_key}"
+        file_content = await file.read()
+
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=s3_key,
+            Body=file_content,
+            ContentType=file.content_type,
+        )
+
+        print(f"Successfully uploaded file: {file.filename}")
 
         return UploadResponse(
             id=str(uuid4()),
             status="uploaded",
             message="File uploaded successfully",
-            asset_uploaded=_fake_asset(),
+            asset_uploaded=AssetSummary(
+                id=str(asset_id),
+                created_at=datetime.now(timezone.utc),
+                thumbnail_url=public_url,
+                ocr_snippet=None,
+                variants=[],
+            ),
         )
-    except HTTPException as e:
-        raise e
+    except UploadException as e:
+        raise e  # re-reraising the error
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise UploadException(
+            error="InternalServerError",
+            detail=str(e),
+            status_code=500,
+        )
 
 
 @app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])

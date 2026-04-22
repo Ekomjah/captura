@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from services.s3_service import map_s3_exception, upload_raw_file
+from services.img_service import ImageConversionError, convert_to_webp
+from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
 
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
@@ -53,6 +54,7 @@ class UploadResponse(BaseModel):
     content_type: str
     size_bytes: int
     status: str = Field(..., examples=["processing", "uploaded"])
+    variants: list
 
 
 class PaginatedAssetsResponse(BaseModel):
@@ -164,6 +166,22 @@ async def upload_file(file: UploadFile = File(...)):
             }
         )
 
+        try:
+            webp_bytes = convert_to_webp(file_content)
+            webp_filename = file.filename.rsplit(".", 1)[0] + ".webp"
+            upload_variant = upload_variant_file(
+                asset_id=upload_result.asset_id,
+                filename=webp_filename,
+                file_bytes=webp_bytes,
+                content_type="image/webp",
+            )
+        except ImageConversionError:
+            raise UploadException(
+                error="ImageConversionError",
+                detail="Could not convert image to WebP",
+                status_code=500,
+            )
+
         return UploadResponse(
             asset_id=upload_result.asset_id,
             bucket=upload_result.bucket,
@@ -171,6 +189,7 @@ async def upload_file(file: UploadFile = File(...)):
             content_type=upload_result.content_type,
             size_bytes=upload_result.size_bytes,
             status="uploaded",
+            variants=[upload_variant],
         )
     except UploadException:
         raise

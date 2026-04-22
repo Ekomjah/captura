@@ -16,6 +16,13 @@ class S3UploadResult:
 
 
 @dataclass
+class S3UploadVariant:
+    s3_key: str
+    content_type: str
+    size_bytes: int
+
+
+@dataclass
 class S3Config:
     region: str
     access_key_id: str
@@ -55,7 +62,9 @@ def build_raw_upload_key(asset_id: UUID, filename: str) -> str:
     return f"uploads/raw/{asset_id}/{filename}"
 
 
-def upload_raw_file(filename: str, file_bytes: bytes, content_type: str) -> S3UploadResult:
+def upload_raw_file(
+    filename: str, file_bytes: bytes, content_type: str
+) -> S3UploadResult:
     config = load_s3_config()
     asset_id = uuid4()
     s3_key = build_raw_upload_key(asset_id=asset_id, filename=filename)
@@ -72,6 +81,26 @@ def upload_raw_file(filename: str, file_bytes: bytes, content_type: str) -> S3Up
         s3_key=s3_key,
         content_type=content_type,
         size_bytes=len(file_bytes),
+    )
+
+
+def upload_variant_file(
+    asset_id: str, filename: str, file_bytes: bytes, content_type: str
+):
+    config = load_s3_config()
+    client = _s3_client(config)
+
+    s3_key = f"uploads/processed/{asset_id}/{filename}"
+
+    client.put_object(
+        Bucket=config.bucket_name,
+        Key=s3_key,
+        Body=file_bytes,
+        ContentType=content_type,
+    )
+
+    return S3UploadVariant(
+        s3_key=s3_key, content_type=content_type, size_bytes=len(file_bytes)
     )
 
 
@@ -97,7 +126,13 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
                 500,
             ),
         }
-        return mapping.get(code, ("S3UploadError", f"S3 upload failed with code: {code}", 500))
+        return mapping.get(
+            code, ("S3UploadError", f"S3 upload failed with code: {code}", 500)
+        )
     if isinstance(exc, BotoCoreError):
-        return ("S3ConnectionError", "Could not connect to S3 with current AWS configuration.", 500)
+        return (
+            "S3ConnectionError",
+            "Could not connect to S3 with current AWS configuration.",
+            500,
+        )
     return ("InternalServerError", "Something went wrong. Please try again later.", 500)

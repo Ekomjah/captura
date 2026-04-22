@@ -1,6 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import datetime, timezone
 from typing import Annotated
 from uuid import uuid4
 
@@ -9,7 +8,14 @@ from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from services.img_service import ImageConversionError, convert_to_webp
-from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
+from services.s3_service import (
+    VariantFormat as S3VariantFormat,
+)
+from services.s3_service import (
+    map_s3_exception,
+    upload_raw_file,
+    upload_variant_file,
+)
 
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
@@ -21,17 +27,12 @@ logging.basicConfig(
 )
 
 
-class VariantFormat(str, Enum):
-    webp = "webp"
-    jpeg = "jpeg"
-    png = "png"
-
-
 class VariantMeta(BaseModel):
-    file_size: int = Field(..., description="Size in Bytes")
-    format: VariantFormat
-    download_url: str
-    expires_at: datetime
+    asset_id: str
+    file_name: str
+    file_bytes: int = Field(..., description="Size in Bytes")
+    content_type: str
+    format: S3VariantFormat
 
 
 class AssetSummary(BaseModel):
@@ -102,13 +103,13 @@ async def upload_exception_handler(request, exc: UploadException):
     )
 
 
-def _fake_variant(fmt: VariantFormat) -> VariantMeta:
-    now = datetime.now(timezone.utc)
+def _fake_variant(fmt: S3VariantFormat) -> VariantMeta:
     return VariantMeta(
-        format=fmt,
-        file_size=123456,
-        download_url=f"https://example.com/download/{uuid4()}?format={fmt.value}",
-        expires_at=now + timedelta(minutes=15),
+        asset_id="",
+        file_name=f"sample.{fmt.value}",
+        file_bytes=123456,
+        content_type="image/webp",
+        format=S3VariantFormat.webp,
     )
 
 
@@ -174,6 +175,7 @@ async def upload_file(file: UploadFile = File(...)):
                 filename=webp_filename,
                 file_bytes=webp_bytes,
                 content_type="image/webp",
+                format=S3VariantFormat.webp,
             )
         except ImageConversionError:
             raise UploadException(

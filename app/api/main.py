@@ -121,9 +121,9 @@ def _fake_asset() -> AssetSummary:
         thumbnail_url="https://example.com/thumb/sample.webp",
         ocr_snippet="ERR_CONNECTION_RESET in settings panel",
         variants=[
-            _fake_variant(VariantFormat.webp),
-            _fake_variant(VariantFormat.jpeg),
-            _fake_variant(VariantFormat.png),
+            _fake_variant(S3VariantFormat.webp),
+            _fake_variant(S3VariantFormat.jpeg),
+            _fake_variant(S3VariantFormat.png),
         ],
     )
 

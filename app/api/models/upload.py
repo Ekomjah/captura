@@ -16,3 +16,15 @@ class UploadVariant(BaseModel):
     content_type: str
     size_bytes: int = Field(..., description="Size in bytes")
     format: VariantFormat
+
+
+class UploadResponse(BaseModel):
+    """Response body for POST /v1/upload (raw object + derived variants)."""
+
+    asset_id: str
+    bucket: str
+    s3_key: str
+    content_type: str
+    size_bytes: int
+    status: str = Field(..., examples=["processing", "uploaded"])
+    variants: list[UploadVariant]

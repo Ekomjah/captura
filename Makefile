@@ -6,7 +6,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev-web dev-api lint test build
+.PHONY: help install dev-web dev-api lint lint-frontend lint-api test build
 
 help:
 	@echo "Captura — common commands"
@@ -14,7 +14,9 @@ help:
 	@echo "  make install    pnpm install + uv sync (app/api)"
 	@echo "  make dev-web    Vite dev server (frontend, --host)"
 	@echo "  make dev-api    FastAPI + uvicorn --reload (app/api)"
-	@echo "  make lint       ESLint (frontend package)"
+	@echo "  make lint            lint-frontend + lint-api"
+	@echo "  make lint-frontend   ESLint (frontend package)"
+	@echo "  make lint-api        ruff (app/api; ensures dev dep via uv add)"
 	@echo "  make test       pytest (app/api, Story 1.2 contract tests)"
 	@echo "  make build      Production build (frontend)"
 	@echo ""
@@ -29,8 +31,13 @@ dev-web:
 dev-api:
 	pnpm run dev:api
 
-lint:
+lint: lint-frontend lint-api
+
+lint-frontend:
 	pnpm --filter frontend lint
+
+lint-api:
+	cd app/api && uv add --dev ruff && uv run ruff check .
 
 test:
 	uv run --project app/api pytest

@@ -1,8 +1,10 @@
 """Tests for Story 1.2 and Story 2.1 API contracts."""
 
 from fastapi.testclient import TestClient
+
 import main
 from main import app
+from models.upload import UploadVariant, VariantFormat
 
 client = TestClient(app)
 
@@ -28,7 +30,16 @@ def test_post_upload_returns_201_and_asset_contract():
         content_type = "image/png"
         size_bytes = 8
 
+    fake_variant = UploadVariant(
+        s3_key="uploads/processed/asset-123/screenshot.webp",
+        content_type="image/webp",
+        size_bytes=12,
+        format=VariantFormat.webp,
+    )
+
     main.upload_raw_file = lambda filename, file_bytes, content_type: _FakeUploadResult()
+    main.convert_to_webp = lambda file_bytes: b"RIFF....WEBP"
+    main.upload_variant_file = lambda **kwargs: fake_variant
     files = {"file": ("screenshot.png", b"\x89PNG\r\n\x1a\n", "image/png")}
     r = client.post("/v1/upload", files=files)
     assert r.status_code == 201
@@ -39,6 +50,12 @@ def test_post_upload_returns_201_and_asset_contract():
     assert data["content_type"] == "image/png"
     assert data["size_bytes"] == 8
     assert data["status"] == "uploaded"
+    assert len(data["variants"]) == 1
+    v0 = data["variants"][0]
+    assert v0["s3_key"] == "uploads/processed/asset-123/screenshot.webp"
+    assert v0["content_type"] == "image/webp"
+    assert v0["size_bytes"] == 12
+    assert v0["format"] == "webp"
 
 
 def test_post_upload_rejects_empty_filename():

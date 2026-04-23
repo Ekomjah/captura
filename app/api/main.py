@@ -7,15 +7,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from models.upload import UploadVariant, VariantFormat
 from services.img_service import ImageConversionError, convert_to_webp
-from services.s3_service import (
-    VariantFormat as S3VariantFormat,
-)
-from services.s3_service import (
-    map_s3_exception,
-    upload_raw_file,
-    upload_variant_file,
-)
+from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
 
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
@@ -32,7 +27,7 @@ class VariantMeta(BaseModel):
     file_name: str
     file_bytes: int = Field(..., description="Size in Bytes")
     content_type: str
-    format: S3VariantFormat
+    format: VariantFormat
 
 
 class AssetSummary(BaseModel):
@@ -55,7 +50,7 @@ class UploadResponse(BaseModel):
     content_type: str
     size_bytes: int
     status: str = Field(..., examples=["processing", "uploaded"])
-    variants: list
+    variants: list[UploadVariant]
 
 
 class PaginatedAssetsResponse(BaseModel):
@@ -103,13 +98,21 @@ async def upload_exception_handler(request, exc: UploadException):
     )
 
 
-def _fake_variant(fmt: S3VariantFormat) -> VariantMeta:
+def _content_type_for_format(fmt: VariantFormat) -> str:
+    return {
+        VariantFormat.webp: "image/webp",
+        VariantFormat.jpeg: "image/jpeg",
+        VariantFormat.png: "image/png",
+    }[fmt]
+
+
+def _fake_variant(fmt: VariantFormat) -> VariantMeta:
     return VariantMeta(
         asset_id="",
         file_name=f"sample.{fmt.value}",
         file_bytes=123456,
-        content_type="image/webp",
-        format=S3VariantFormat.webp,
+        content_type=_content_type_for_format(fmt),
+        format=fmt,
     )
 
 
@@ -121,9 +124,9 @@ def _fake_asset() -> AssetSummary:
         thumbnail_url="https://example.com/thumb/sample.webp",
         ocr_snippet="ERR_CONNECTION_RESET in settings panel",
         variants=[
-            _fake_variant(S3VariantFormat.webp),
-            _fake_variant(S3VariantFormat.jpeg),
-            _fake_variant(S3VariantFormat.png),
+            _fake_variant(VariantFormat.webp),
+            _fake_variant(VariantFormat.jpeg),
+            _fake_variant(VariantFormat.png),
         ],
     )
 
@@ -157,15 +160,6 @@ async def upload_file(file: UploadFile = File(...)):
             file_bytes=file_content,
             content_type=content_type,
         )
-        logger.info(
-            {
-                "event": "upload_file",
-                "asset_id": upload_result.asset_id,
-                "bucket": upload_result.bucket,
-                "s3_key": upload_result.s3_key,
-                "filename": file.filename,
-            }
-        )
 
         try:
             webp_bytes = convert_to_webp(file_content)
@@ -175,7 +169,7 @@ async def upload_file(file: UploadFile = File(...)):
                 filename=webp_filename,
                 file_bytes=webp_bytes,
                 content_type="image/webp",
-                format=S3VariantFormat.webp,
+                format=VariantFormat.webp,
             )
         except ImageConversionError:
             raise UploadException(
@@ -183,6 +177,18 @@ async def upload_file(file: UploadFile = File(...)):
                 detail="Could not convert image to WebP",
                 status_code=500,
             )
+
+        logger.info(
+            {
+                "event": "upload_complete",
+                "asset_id": upload_result.asset_id,
+                "bucket": upload_result.bucket,
+                "raw_s3_key": upload_result.s3_key,
+                "variant_s3_key": upload_variant.s3_key,
+                "variant_format": upload_variant.format.value,
+                "filename": file.filename,
+            }
+        )
 
         return UploadResponse(
             asset_id=upload_result.asset_id,

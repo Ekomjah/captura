@@ -1,17 +1,12 @@
 import os
 from dataclasses import dataclass
-from enum import Enum
 from typing import Literal
 from uuid import uuid4
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-
-class VariantFormat(str, Enum):
-    webp = "webp"
-    jpeg = "jpeg"
-    png = "png"
+from models.upload import UploadVariant, VariantFormat
 
 
 @dataclass
@@ -21,14 +16,6 @@ class S3UploadResult:
     s3_key: str
     content_type: str
     size_bytes: int
-
-
-@dataclass
-class S3UploadVariant:
-    s3_key: str
-    content_type: str
-    size_bytes: int
-    format: VariantFormat
 
 
 @dataclass
@@ -101,7 +88,7 @@ def upload_variant_file(
     file_bytes: bytes,
     content_type: str,
     format: VariantFormat,
-) -> S3UploadVariant:
+) -> UploadVariant:
     config = load_s3_config()
     client = _s3_client(config)
 
@@ -114,7 +101,7 @@ def upload_variant_file(
         ContentType=content_type,
     )
 
-    return S3UploadVariant(
+    return UploadVariant(
         s3_key=s3_key,
         content_type=content_type,
         size_bytes=len(file_bytes),

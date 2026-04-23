@@ -8,7 +8,7 @@ from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from models.upload import UploadVariant, VariantFormat
+from models.upload import UploadResponse, VariantFormat
 from services.img_service import ImageConversionError, convert_to_webp
 from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
 
@@ -39,18 +39,6 @@ class AssetSummary(BaseModel):
     ocr_snippet: str | None = None
 
     variants: list[VariantMeta]
-
-
-class UploadResponse(BaseModel):
-    """resp model for the upload endpoint"""
-
-    asset_id: str
-    bucket: str
-    s3_key: str
-    content_type: str
-    size_bytes: int
-    status: str = Field(..., examples=["processing", "uploaded"])
-    variants: list[UploadVariant]
 
 
 class PaginatedAssetsResponse(BaseModel):

@@ -6,9 +6,8 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-
 from models.upload import UploadResponse, VariantFormat
+from pydantic import BaseModel, Field
 from services.img_service import ImageConversionError, convert_to_webp
 from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
 
@@ -156,7 +155,7 @@ async def upload_file(file: UploadFile = File(...)):
                 asset_id=upload_result.asset_id,
                 filename=webp_filename,
                 file_bytes=webp_bytes,
-                content_type="image/webp",
+                content_type=_content_type_for_format(VariantFormat.webp),
                 format=VariantFormat.webp,
             )
         except ImageConversionError:

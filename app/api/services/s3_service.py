@@ -5,8 +5,7 @@ from uuid import uuid4
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-
-from app.api.schema.upload import UploadVariant, VariantFormat
+from schema.upload import UploadVariant, VariantFormat
 
 
 @dataclass
@@ -140,4 +139,8 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
             "Could not connect to S3 with current AWS configuration.",
             500,
         )
-    return ("InternalServerError", "Something went wrong. Please try again later.", 500)
+    return (
+        "InternalServerError",
+        "Something went wrong. Please try again later or confirm your network.",
+        500,
+    )

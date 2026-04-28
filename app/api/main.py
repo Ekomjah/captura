@@ -4,12 +4,16 @@ from typing import Annotated
 from uuid import uuid4
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
-from app.api.schema.upload import UploadResponse, VariantFormat
 from pydantic import BaseModel, Field
+from repo.create_asset import create_asset
+from schema.upload import UploadResponse, VariantFormat
+from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
+from services.ocr_service import OCRExtractionError, extract_ocr_text
 from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
+from sqlalchemy.orm import Session
 
 app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
@@ -131,7 +135,7 @@ def _fake_asset() -> AssetSummary:
     },
     tags=["assets"],
 )
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
         if not file.filename:
             raise UploadException(
@@ -165,6 +169,20 @@ async def upload_file(file: UploadFile = File(...)):
                 status_code=500,
             )
 
+        try:
+            ocr_text = await extract_ocr_text(file_content)
+            ocr_status = "pending" if not ocr_text else "done"
+            # For simplicity, we just take the first 100 chars as a snippet
+            ocr_snippet = ocr_text[:100] if ocr_text else None
+        except OCRExtractionError:
+            ocr_snippet = None
+            ocr_status = "failed"
+            raise UploadException(
+                error="OCRExtractionError",
+                detail="Failed to extract text from image using OCR",
+                status_code=500,
+            )
+
         logger.info(
             {
                 "event": "upload_complete",
@@ -174,18 +192,22 @@ async def upload_file(file: UploadFile = File(...)):
                 "variant_s3_key": upload_variant.s3_key,
                 "variant_format": upload_variant.format.value,
                 "filename": file.filename,
+                "ocr_status": ocr_status,
+                "ocr_snippet": ocr_snippet,
             }
         )
 
-        return UploadResponse(
+        resp = UploadResponse(
             asset_id=upload_result.asset_id,
             bucket=upload_result.bucket,
             s3_key=upload_result.s3_key,
             content_type=upload_result.content_type,
             size_bytes=upload_result.size_bytes,
-            status="uploaded",
+            ocr_snippet=ocr_snippet,
+            ocr_status=ocr_status,
             variants=[upload_variant],
         )
+        return await create_asset(resp, db)
     except UploadException:
         raise
     except Exception as exc:

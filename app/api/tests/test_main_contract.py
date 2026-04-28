@@ -1,10 +1,9 @@
 """Tests for Story 1.2 and Story 2.1 API contracts."""
 
-from fastapi.testclient import TestClient
-
 import main
+from fastapi.testclient import TestClient
 from main import app
-from app.api.schema.upload import UploadVariant, VariantFormat
+from schema.upload import UploadVariant, VariantFormat
 
 client = TestClient(app)
 
@@ -37,7 +36,9 @@ def test_post_upload_returns_201_and_asset_contract():
         format=VariantFormat.webp,
     )
 
-    main.upload_raw_file = lambda filename, file_bytes, content_type: _FakeUploadResult()
+    main.upload_raw_file = lambda filename, file_bytes, content_type: (
+        _FakeUploadResult()
+    )
     main.convert_to_webp = lambda file_bytes: b"RIFF....WEBP"
     main.upload_variant_file = lambda **kwargs: fake_variant
     files = {"file": ("screenshot.png", b"\x89PNG\r\n\x1a\n", "image/png")}

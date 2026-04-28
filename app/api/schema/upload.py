@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class VariantFormat(str, Enum):
@@ -26,5 +26,8 @@ class UploadResponse(BaseModel):
     s3_key: str
     content_type: str
     size_bytes: int
-    status: str = Field(..., examples=["processing", "uploaded"])
+    ocr_snippet: str | None = None
+    ocr_status: str = Field(..., examples=["pending", "done", "failed"])
     variants: list[UploadVariant]
+
+    model_config = ConfigDict(from_attributes=True)

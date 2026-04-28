@@ -6,7 +6,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
-from models.upload import UploadResponse, VariantFormat
+from app.api.schema.upload import UploadResponse, VariantFormat
 from pydantic import BaseModel, Field
 from services.img_service import ImageConversionError, convert_to_webp
 from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file

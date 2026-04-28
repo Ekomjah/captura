@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 import main
 from main import app
-from models.upload import UploadVariant, VariantFormat
+from app.api.schema.upload import UploadVariant, VariantFormat
 
 client = TestClient(app)
 

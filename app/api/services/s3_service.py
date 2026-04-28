@@ -6,7 +6,7 @@ from uuid import uuid4
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-from models.upload import UploadVariant, VariantFormat
+from app.api.schema.upload import UploadVariant, VariantFormat
 
 
 @dataclass

@@ -1,5 +1,5 @@
 from enum import Enum
-from datetime import datetime, timezone
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -31,4 +31,3 @@ class UploadResponse(BaseModel):
     variants: list[UploadVariant]
 
     model_config = ConfigDict(from_attributes=True)
-

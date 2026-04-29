@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 # todo: the thumbnail url and variants have to be gotten during uploads as their values are not stored in the db, we can add them to the db or we can get them from s3 during retrieval, for now we will just hardcode them in the response model

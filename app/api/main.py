@@ -1,13 +1,14 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Annotated
-from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from repo.create_asset import create_asset
+from repo.get_assets import get_all_assets
+from repo.store_asset import store_asset
+from schema.db_schema import AssetSummary, PaginatedAssetsResponse
 from schema.upload import UploadResponse, VariantFormat
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
@@ -33,24 +34,24 @@ class VariantMeta(BaseModel):
     format: VariantFormat
 
 
-class AssetSummary(BaseModel):
-    """image obj for an image upload"""
+# class AssetSummary(BaseModel):
+#     """image obj for an image upload"""
 
-    id: str
-    created_at: datetime
-    thumbnail_url: str
-    ocr_snippet: str | None = None
+#     asset_id: str
+#     created_at: datetime
+#     thumbnail_url: str | None = None
+#     ocr_snippet: str | None = None
+#     ocr_status: str
+#     variants: list[VariantMeta] | None = None
 
-    variants: list[VariantMeta]
 
+# class PaginatedAssetsResponse(BaseModel):
+#     """resp model for the history endpoint"""
 
-class PaginatedAssetsResponse(BaseModel):
-    """resp model for the history endpoint"""
-
-    images: list[AssetSummary]
-    page: int = 1
-    page_size: int
-    total: int
+#     images: list[AssetSummary]
+#     page: int = 1
+#     page_size: int
+#     total: int
 
 
 class SearchHit(BaseModel):
@@ -97,29 +98,30 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
     }[fmt]
 
 
-def _fake_variant(fmt: VariantFormat) -> VariantMeta:
-    return VariantMeta(
-        asset_id="",
-        file_name=f"sample.{fmt.value}",
-        file_bytes=123456,
-        content_type=_content_type_for_format(fmt),
-        format=fmt,
-    )
+# def _fake_variant(fmt: VariantFormat) -> VariantMeta:
+#     return VariantMeta(
+#         asset_id="",
+#         file_name=f"sample.{fmt.value}",
+#         file_bytes=123456,
+#         content_type=_content_type_for_format(fmt),
+#         format=fmt,
+#     )
 
 
-def _fake_asset() -> AssetSummary:
-    now = datetime.now(timezone.utc)
-    return AssetSummary(
-        id=str(uuid4()),
-        created_at=now,
-        thumbnail_url="https://example.com/thumb/sample.webp",
-        ocr_snippet="ERR_CONNECTION_RESET in settings panel",
-        variants=[
-            _fake_variant(VariantFormat.webp),
-            _fake_variant(VariantFormat.jpeg),
-            _fake_variant(VariantFormat.png),
-        ],
-    )
+# def _fake_asset() -> AssetSummary:
+#     now = datetime.now(timezone.utc)
+#     return AssetSummary(
+#         asset_id=str(uuid4()),
+#         created_at=now,
+#         thumbnail_url="https://example.com/thumb/sample.webp",
+#         ocr_snippet="ERR_CONNECTION_RESET in settings panel",
+#         ocr_status="pending",
+#         variants=[
+#             _fake_variant(VariantFormat.webp),
+#             _fake_variant(VariantFormat.jpeg),
+#             _fake_variant(VariantFormat.png),
+#         ],
+#     )
 
 
 @app.post(
@@ -168,12 +170,12 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
                 detail="Could not convert image to WebP",
                 status_code=500,
             )
-
+        ocr_text, ocr_status = None, "pending"
         try:
             ocr_text = await extract_ocr_text(file_content)
-            ocr_status = "pending" if not ocr_text else "done"
             # For simplicity, we just take the first 100 chars as a snippet
             ocr_snippet = ocr_text[:100] if ocr_text else None
+            ocr_status = "Done"
         except OCRExtractionError:
             ocr_snippet = None
             ocr_status = "failed"
@@ -207,7 +209,15 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
-        return await create_asset(resp, db)
+        db_store = AssetSummary(
+            id=upload_result.asset_id,
+            ocr_text=ocr_text,
+            ocr_status=ocr_status,
+            s3_key=upload_result.s3_key,
+            created_at=datetime.now(),  #! help find a way to get the actual created at time from the db or s3 or escape the field all together instead of using now() which is not accurate
+        )
+        await store_asset(db_store, db)
+        return resp
     except UploadException:
         raise
     except Exception as exc:
@@ -221,32 +231,35 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
 
 @app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])
 async def get_history(
+    db: Session = Depends(get_db),
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
-    return PaginatedAssetsResponse(
-        images=[_fake_asset()],
-        page=page,
-        page_size=page_size,
-        total=1000,
-    )
+    try:
+        return await get_all_assets(db, page, page_size)
+    except Exception as e:
+        raise UploadException(
+            error="DatabaseError",
+            detail="Failed to retrieve assets from the database",
+            status_code=500,
+        ) from e
 
 
-@app.get("/v1/search", response_model=PaginatedSearchResponse, tags=["search"])
-async def search_assets(
-    q: Annotated[str, Query(min_length=1)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-):
-    fake_hit = SearchHit(
-        asset=_fake_asset(),
-        matched_text=q,
-        match_context=f"...context around '{q}'...",
-    )
-    return PaginatedSearchResponse(
-        items=[fake_hit],
-        page=page,
-        page_size=page_size,
-        total=500,
-        query=q,
-    )
+# @app.get("/v1/search", response_model=PaginatedSearchResponse, tags=["search"])
+# async def search_assets(
+#     q: Annotated[str, Query(min_length=1)],
+#     page: Annotated[int, Query(ge=1)] = 1,
+#     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+# ):
+#     fake_hit = SearchHit(
+#         asset=_fake_asset(),
+#         matched_text=q,
+#         match_context=f"...context around '{q}'...",
+#     )
+#     return PaginatedSearchResponse(
+#         items=[fake_hit],
+#         page=page,
+#         page_size=page_size,
+#         total=500,
+#         query=q,
+#     )

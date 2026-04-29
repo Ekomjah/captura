@@ -5,6 +5,9 @@
 # ocr_status  TEXT NOT NULL -- pending | done | failed
 # created_at  TIMESTAMPTZ NOT NULL
 
+
+# TODO: - We can consider adding a `variants` column to store the derived variants in the db for easier retrieval instead of having to get them from s3 during retrieval
+# TODO: - We can also add a thumbnail_url column to adhere the the `AssetSummary`'s model and the initial story for api contracts
 from datetime import datetime
 
 from db.base import Base

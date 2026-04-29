@@ -17,8 +17,7 @@ async def extract_ocr_text(image_bytes: bytes) -> str:
         loop = asyncio.get_event_loop()
         text = await loop.run_in_executor(None, pytesseract.image_to_string, img)
         if not text.strip():
-            raise OCRExtractionError("No text found in image")
-
+            text = ""
         return text.strip()
     except Exception as e:
         raise OCRExtractionError("Failed to extract text from image using OCR") from e

@@ -24,3 +24,19 @@ class PaginatedAssetsResponse(BaseModel):
     page: int = 1
     page_size: int
     total: int
+
+
+class SearchHit(BaseModel):
+    asset: AssetSummary
+    matched_text: str
+    match_context: str | None = None
+
+
+class PaginatedSearchResponse(BaseModel):
+    """resp for the ocr search endpoint"""
+
+    items: list[SearchHit]
+    page: int
+    page_size: int
+    total: int
+    query: str

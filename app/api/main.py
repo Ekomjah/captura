@@ -7,6 +7,7 @@ from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from repo.get_assets import get_all_assets
+from repo.search_assets import search_assets
 from repo.store_asset import store_asset
 from schema.db_schema import AssetSummary, PaginatedAssetsResponse
 from schema.upload import UploadResponse, VariantFormat
@@ -245,21 +246,11 @@ async def get_history(
         ) from e
 
 
-# @app.get("/v1/search", response_model=PaginatedSearchResponse, tags=["search"])
-# async def search_assets(
-#     q: Annotated[str, Query(min_length=1)],
-#     page: Annotated[int, Query(ge=1)] = 1,
-#     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-# ):
-#     fake_hit = SearchHit(
-#         asset=_fake_asset(),
-#         matched_text=q,
-#         match_context=f"...context around '{q}'...",
-#     )
-#     return PaginatedSearchResponse(
-#         items=[fake_hit],
-#         page=page,
-#         page_size=page_size,
-#         total=500,
-#         query=q,
-#     )
+@app.get("/v1/search", response_model=PaginatedSearchResponse, tags=["search"])
+async def search_endpoint(
+    q: Annotated[str, Query(min_length=1)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    db: Session = Depends(get_db),
+):
+    return await search_assets(db=db, q=q, page=page, page_size=page_size)

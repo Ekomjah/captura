@@ -9,6 +9,8 @@ async def store_asset(asset: UpsertRepo, db: Session) -> UpsertRepo:
         s3_key=asset.s3_key,
         ocr_text=asset.ocr_text,
         ocr_status=asset.ocr_status,
+        size_bytes=asset.size_bytes,
+        created_at=asset.created_at,
     )
     db.add(db_asset)
     db.commit()

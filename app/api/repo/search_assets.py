@@ -7,7 +7,7 @@ from schema.db_schema import (
 )
 from sqlalchemy.orm import Session
 
-from repo.get_assets import _asset_to_summary, get_db_assets
+from repo.get_assets import _asset_to_summary, get_all_db_assets
 
 logger = logging.getLogger(__name__)
 
@@ -15,17 +15,8 @@ logger = logging.getLogger(__name__)
 async def search_assets(
     db: Session, q: str, page: int = 1, page_size: int = 20
 ) -> PaginatedSearchResponse:
-    # Fetch all assets for searching (iterate through pages)
-    all_assets = []
-    current_page = 1
-    batch_size = 100  # Internal batch size for fetching
-
-    while True:
-        batch = await get_db_assets(db, current_page, batch_size)
-        if not batch:
-            break
-        all_assets.extend(batch)
-        current_page += 1
+    # Fetch all assets for searching
+    all_assets = await get_all_db_assets(db)
 
     # Search through all assets and collect hits
     search_hits = []

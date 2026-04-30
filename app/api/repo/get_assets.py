@@ -69,3 +69,21 @@ async def get_db_assets(
         return [UpsertRepo.model_validate(asset) for asset in db_assets]
     except Exception as e:
         raise Exception("Failed to retrieve assets from the database") from e
+
+
+async def get_all_db_assets(db: Session, batch_size: int = 100) -> list[UpsertRepo]:
+    """Fetch all assets from the database in batches."""
+    try:
+        all_assets = []
+        current_page = 1
+
+        while True:
+            batch = await get_db_assets(db, current_page, batch_size)
+            if not batch:
+                break
+            all_assets.extend(batch)
+            current_page += 1
+
+        return all_assets
+    except Exception as e:
+        raise Exception("Failed to retrieve all assets from the database") from e

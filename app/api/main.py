@@ -9,7 +9,12 @@ from pydantic import BaseModel, Field
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
-from schema.db_schema import AssetSummary, PaginatedAssetsResponse
+from schema.db_schema import (
+    ErrorResponse,
+    PaginatedAssetsResponse,
+    PaginatedSearchResponse,
+    UpsertRepo,
+)
 from schema.upload import UploadResponse, VariantFormat
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
@@ -35,47 +40,6 @@ class VariantMeta(BaseModel):
     format: VariantFormat
 
 
-# class AssetSummary(BaseModel):
-#     """image obj for an image upload"""
-
-#     asset_id: str
-#     created_at: datetime
-#     thumbnail_url: str | None = None
-#     ocr_snippet: str | None = None
-#     ocr_status: str
-#     variants: list[VariantMeta] | None = None
-
-
-# class PaginatedAssetsResponse(BaseModel):
-#     """resp model for the history endpoint"""
-
-#     images: list[AssetSummary]
-#     page: int = 1
-#     page_size: int
-#     total: int
-
-
-class SearchHit(BaseModel):
-    asset: AssetSummary
-    matched_text: str
-    match_context: str | None = None
-
-
-class PaginatedSearchResponse(BaseModel):
-    """resp for the ocr search endpoint"""
-
-    items: list[SearchHit]
-    page: int
-    page_size: int
-    total: int
-    query: str
-
-
-class ErrorResponse(BaseModel):
-    error: str
-    detail: str
-
-
 class UploadException(Exception):
     def __init__(self, error: str, detail: str, status_code: int = 500):
         self.error = error
@@ -97,32 +61,6 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
         VariantFormat.jpeg: "image/jpeg",
         VariantFormat.png: "image/png",
     }[fmt]
-
-
-# def _fake_variant(fmt: VariantFormat) -> VariantMeta:
-#     return VariantMeta(
-#         asset_id="",
-#         file_name=f"sample.{fmt.value}",
-#         file_bytes=123456,
-#         content_type=_content_type_for_format(fmt),
-#         format=fmt,
-#     )
-
-
-# def _fake_asset() -> AssetSummary:
-#     now = datetime.now(timezone.utc)
-#     return AssetSummary(
-#         asset_id=str(uuid4()),
-#         created_at=now,
-#         thumbnail_url="https://example.com/thumb/sample.webp",
-#         ocr_snippet="ERR_CONNECTION_RESET in settings panel",
-#         ocr_status="pending",
-#         variants=[
-#             _fake_variant(VariantFormat.webp),
-#             _fake_variant(VariantFormat.jpeg),
-#             _fake_variant(VariantFormat.png),
-#         ],
-#     )
 
 
 @app.post(
@@ -176,15 +114,10 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_text = await extract_ocr_text(file_content)
             # For simplicity, we just take the first 100 chars as a snippet
             ocr_snippet = ocr_text[:100] if ocr_text else None
-            ocr_status = "Done"
+            ocr_status = "done"
         except OCRExtractionError:
             ocr_snippet = None
             ocr_status = "failed"
-            raise UploadException(
-                error="OCRExtractionError",
-                detail="Failed to extract text from image using OCR",
-                status_code=500,
-            )
 
         logger.info(
             {
@@ -210,12 +143,13 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
-        db_store = AssetSummary(
+        db_store = UpsertRepo(
             id=upload_result.asset_id,
             ocr_text=ocr_text,
             ocr_status=ocr_status,
             s3_key=upload_result.s3_key,
-            created_at=datetime.now(),  #! help find a way to get the actual created at time from the db or s3 or escape the field all together instead of using now() which is not accurate
+            size_bytes=upload_result.size_bytes,
+            created_at=datetime.utcnow(),
         )
         await store_asset(db_store, db)
         return resp
@@ -253,4 +187,4 @@ async def search_endpoint(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     db: Session = Depends(get_db),
 ):
-    return await search_assets(db=db, q=q, page=page, page_size=page_size)
+    return await search_assets(db, q, page, page_size)

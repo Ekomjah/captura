@@ -6,22 +6,23 @@ from schema.db_schema import (
 )
 from sqlalchemy.orm import Session
 
-from repo.get_assets import get_all_assets
+from repo.get_assets import _asset_to_summary, get_db_assets
 
 
 async def search_assets(
     db: Session, q: str, page: int = 1, page_size: int = 20
 ) -> PaginatedSearchResponse:
-    assets = await get_all_assets(db)
+    assets = await get_db_assets(db, page, page_size)
     search_hits = []
     escaped_word = re.escape(q)
     pattern = rf"\b{escaped_word}\b"
-    for asset in assets.images:
+    for asset in assets:
         if asset.ocr_text:
             matches = [
                 (m.group(), m.start())
                 for m in re.finditer(pattern, asset.ocr_text, re.IGNORECASE)
             ]
+            asset_summary = _asset_to_summary(asset)
             for match_text, index in matches:
                 start = max(0, index - 40)
                 end = min(len(asset.ocr_text), index + len(q) + 40)
@@ -29,7 +30,7 @@ async def search_assets(
 
                 search_hits.append(
                     SearchHit(
-                        asset=asset,
+                        asset=asset_summary,
                         matched_text=match_text,
                         match_context=context,
                     )

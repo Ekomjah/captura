@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16-alpine # alpine = smaller image
+    container_name: captura_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5434:5432" # localhost:5432 → container:5432
+    volumes:
+      - captura_pgdata:/var/lib/postgresql/data # persist data between restarts
+      # - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # optional seed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+volumes:
+  captura_pgdata:
+
+# RUN WITH:
+# docker compose up -d
+# docker compose exec db psql -U captura-developer -d captura_db

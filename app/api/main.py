@@ -5,7 +5,6 @@ from typing import Annotated
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
@@ -26,18 +25,13 @@ app = FastAPI(title="Captura API", version="0.1.0")
 load_dotenv()
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    level=logging.DEBUG,
     force=True,  # important with uvicorn
 )
-
-
-class VariantMeta(BaseModel):
-    asset_id: str
-    file_name: str
-    file_bytes: int = Field(..., description="Size in Bytes")
-    content_type: str
-    format: VariantFormat
+# Ensure all loggers can propagate to root
+logging.getLogger().setLevel(logging.DEBUG)
+for logger_name in ["repo", "services", "models", "schema"]:
+    logging.getLogger(logger_name).setLevel(logging.DEBUG)
 
 
 class UploadException(Exception):

@@ -1,1 +1,10 @@
+#!/usr/bin/env bash
+
+# load nvm so the hook uses the correct Node version
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# strip Windows paths just in case
+export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '/mnt/c/' | tr '\n' ':')
+
 pnpm precommit:all

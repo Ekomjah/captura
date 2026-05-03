@@ -37,23 +37,6 @@ def _asset_to_summary(asset: UpsertRepo) -> AssetSummary:
         variants=variants,
     )
 
-
-async def get_all_assets(
-    db: Session, page: int = 1, page_size: int = 10
-) -> PaginatedAssetsResponse:
-    try:
-        db_assets = await get_db_assets(db, page, page_size)
-        total = db.query(Asset).count()
-
-        assets = [_asset_to_summary(asset) for asset in db_assets]
-
-        return PaginatedAssetsResponse(
-            images=assets, page=page, page_size=page_size, total=total
-        )
-    except Exception as e:
-        raise Exception("Failed to retrieve assets from the database") from e
-
-
 async def get_db_assets(
     db: Session, page: int = 1, page_size: int = 10
 ) -> list[UpsertRepo]:
@@ -71,19 +54,18 @@ async def get_db_assets(
         raise Exception("Failed to retrieve assets from the database") from e
 
 
-async def get_all_db_assets(db: Session, batch_size: int = 100) -> list[UpsertRepo]:
-    """Fetch all assets from the database in batches."""
+
+async def get_all_assets(
+    db: Session, page: int = 1, page_size: int = 10
+) -> PaginatedAssetsResponse:
     try:
-        all_assets = []
-        current_page = 1
+        db_assets = await get_db_assets(db, page, page_size)
+        total = db.query(Asset).count()
 
-        while True:
-            batch = await get_db_assets(db, current_page, batch_size)
-            if not batch:
-                break
-            all_assets.extend(batch)
-            current_page += 1
+        assets = [_asset_to_summary(asset) for asset in db_assets]
 
-        return all_assets
+        return PaginatedAssetsResponse(
+            images=assets, page=page, page_size=page_size, total=total
+        )
     except Exception as e:
-        raise Exception("Failed to retrieve all assets from the database") from e
+        raise Exception("Failed to retrieve assets from the database") from e

@@ -12,6 +12,8 @@
 from datetime import datetime
 
 from db.base import Base
+from sqlalchemy import Computed, Index
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -26,3 +28,17 @@ class Asset(Base):
     )
     size_bytes: Mapped[int] = mapped_column(nullable=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(index=True, default=datetime.utcnow)
+
+    search_vector: Mapped[str] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('english', coalesce(ocr_text, ''))", persisted=True),
+        nullable=True,
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_assets_search_vector",
+            "search_vector",
+            postgresql_using="gin",
+        ),
+    )

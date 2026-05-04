@@ -1,20 +1,9 @@
-# -- Minimal `assets` table shape for OCR persistence alignment
-# id          TEXT PRIMARY KEY
-# s3_key      TEXT NOT NULL
-# ocr_text    TEXT NULL
-# ocr_status  TEXT NOT NULL -- pending | done | failed
-# created_at  TIMESTAMPTZ NOT NULL
-
-
-# TODO: - We can consider adding a `variants` column to store the derived variants in the db for easier retrieval instead of having to get them from s3 during retrieval
-# TODO: - We can also add a thumbnail_url column to adhere the the `AssetSummary`'s model and the initial story for api contracts
-
 from datetime import datetime
 
 from db.base import Base
-from sqlalchemy import Computed, Index
+from sqlalchemy import Computed, Index,ForeignKey
 from sqlalchemy.dialects.postgresql import TSVECTOR
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column,relationship
 
 
 class Asset(Base):
@@ -28,6 +17,7 @@ class Asset(Base):
     )
     size_bytes: Mapped[int] = mapped_column(nullable=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(index=True, default=datetime.utcnow)
+    asset_variants: Mapped[list["AssetVariant"]] = relationship("AssetVariant", back_populates="asset", cascade="all, delete-orphan")
 
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR,
@@ -42,3 +32,19 @@ class Asset(Base):
             postgresql_using="gin",
         ),
     )
+
+class AssetVariant(Base):
+    __tablename__ = "asset_variants"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    asset_id: Mapped[str] = mapped_column(
+        ForeignKey("assets.id"),
+        nullable=False,
+        index=True
+    )
+    s3_key: Mapped[str] = mapped_column(nullable=False, index=True)
+    format: Mapped[str] = mapped_column(nullable=False)
+    content_type: Mapped[str] = mapped_column(nullable=False)
+    size_bytes: Mapped[int] = mapped_column(nullable=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(index=True, default=datetime.utcnow)
+    asset: Mapped["Asset"] = relationship("Asset", back_populates="asset_variants")

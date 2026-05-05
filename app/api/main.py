@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
+from repo.store_variant import store_asset_variant
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
@@ -13,6 +14,7 @@ from schema.db_schema import (
     PaginatedAssetsResponse,
     PaginatedSearchResponse,
     UpsertRepo,
+    UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
 from services.db_service import get_db
@@ -137,7 +139,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
-        db_store = UpsertRepo(
+        db_store:UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
             ocr_text=ocr_text,
             ocr_status=ocr_status,
@@ -145,7 +147,15 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             size_bytes=upload_result.size_bytes,
             created_at=datetime.utcnow(),
         )
-        await store_asset(db_store, db)
+        variant_data: UpsertRepoVariant = UpsertRepoVariant(
+            s3_key=upload_variant.s3_key,
+            format=upload_variant.format.value,
+            content_type=upload_variant.content_type,
+            size_bytes=upload_variant.size_bytes,
+            created_at=datetime.utcnow(),
+        )
+        store_asset(db_store, db)
+        store_asset_variant(variant_data, upload_result.asset_id, db)
         return resp
     except UploadException:
         raise

@@ -38,6 +38,13 @@ class UpsertRepo(BaseModel):
     def normalize_status(cls, v: str) -> str:
         return v.lower()
 
+class UpsertRepoVariant(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    s3_key: str
+    format: str
+    content_type: str
+    size_bytes: int
+    created_at: datetime
 
 class PaginatedAssetsResponse(BaseModel):
     """resp model for the history endpoint"""

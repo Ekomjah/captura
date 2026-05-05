@@ -36,7 +36,7 @@ class Asset(Base):
 class AssetVariant(Base):
     __tablename__ = "asset_variants"
 
-    id: Mapped[str] = mapped_column(primary_key=True)
+    variant_id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     asset_id: Mapped[str] = mapped_column(
         ForeignKey("assets.id"),
         nullable=False,

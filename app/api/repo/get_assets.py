@@ -1,10 +1,10 @@
 from models.model import Asset
-from schema.db_schema import AssetSummary, PaginatedAssetsResponse, UpsertRepo
+from schema.db_schema import AssetSummary, PaginatedAssetsResponse
 from schema.upload import UploadVariant, VariantFormat
 from sqlalchemy.orm import Session
 
 
-def _asset_to_summary(asset: UpsertRepo) -> AssetSummary:
+def _asset_to_summary(asset: Asset) -> AssetSummary:
     # Format: uploads/raw/{asset_id}/{filename}
     parts = asset.s3_key.split("/")
     asset_id = asset.id
@@ -20,9 +20,10 @@ def _asset_to_summary(asset: UpsertRepo) -> AssetSummary:
         UploadVariant(
             s3_key=webp_thumbnail_url,
             content_type="image/webp",
-            size_bytes=0,  #! Size is not stored in the db for variants, we can consider storing it in the future
+            size_bytes=asset_variant.size_bytes,  #! Size is not stored in the db for variants, we can consider storing it in the future
             format=VariantFormat.webp,
         )
+        for asset_variant in asset.asset_variants
     ]
 
     return AssetSummary(
@@ -39,8 +40,8 @@ def _asset_to_summary(asset: UpsertRepo) -> AssetSummary:
 
 async def get_db_assets(
     db: Session, page: int = 1, page_size: int = 10
-) -> list[UpsertRepo]:
-    try:
+) -> list[Asset]:
+    # try:
         offset = (page - 1) * page_size
         db_assets = (
             db.query(Asset)
@@ -49,16 +50,16 @@ async def get_db_assets(
             .limit(page_size)
             .all()
         )
-        return [UpsertRepo.model_validate(asset) for asset in db_assets]
-    except Exception as e:
-        raise Exception("Failed to retrieve assets from the database") from e
+        return db_assets
+    # except Exception as e:
+    #     raise Exception("Failed to retrieve assets from the database") from e
 
 
 
 async def get_all_assets(
     db: Session, page: int = 1, page_size: int = 10
 ) -> PaginatedAssetsResponse:
-    try:
+    # try:
         db_assets = await get_db_assets(db, page, page_size)
         total = db.query(Asset).count()
 
@@ -67,5 +68,5 @@ async def get_all_assets(
         return PaginatedAssetsResponse(
             images=assets, page=page, page_size=page_size, total=total
         )
-    except Exception as e:
-        raise Exception("Failed to retrieve assets from the database") from e
+    # except Exception as e:
+    #     raise Exception("Failed to retrieve assets from the database") from e

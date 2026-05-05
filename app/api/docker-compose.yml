@@ -17,9 +17,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: pyproject.toml
+    volumes:
+      - .:/api
+    container_name: captura_api
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
       
 volumes:
   captura_pgdata:
+
 
 # RUN WITH:
 # docker compose up -d

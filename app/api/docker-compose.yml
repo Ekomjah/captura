@@ -27,12 +27,14 @@ services:
           path: pyproject.toml
     volumes:
       - .:/api
+       - /api/.venv-docker
     container_name: captura_api
     restart: unless-stopped
     ports:
       - "8080:8000"
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      
     depends_on:
       db:
         condition: service_healthy

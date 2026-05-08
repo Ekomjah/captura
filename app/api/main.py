@@ -2,13 +2,14 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
-from repo.store_variant import store_asset_variant
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
+from repo.store_variant import store_asset_variant
+from seed.seed import cleanup_seeds
 from schema.db_schema import (
     ErrorResponse,
     PaginatedAssetsResponse,
@@ -58,7 +59,6 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
         VariantFormat.png: "image/png",
     }[fmt]
 
-
 @app.post(
     "/v1/upload",
     status_code=201,
@@ -74,6 +74,7 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
 )
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
+
         if not file.filename:
             raise UploadException(
                 error="ValidationError",
@@ -139,7 +140,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
-        db_store:UpsertRepo = UpsertRepo(
+        db_store: UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
             ocr_text=ocr_text,
             ocr_status=ocr_status,
@@ -156,6 +157,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         )
         store_asset(db_store, db)
         store_asset_variant(variant_data, upload_result.asset_id, db)
+        cleanup_seeds(db)
         return resp
     except UploadException:
         raise

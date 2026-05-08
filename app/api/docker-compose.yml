@@ -27,7 +27,7 @@ services:
           path: pyproject.toml
     volumes:
       - .:/api
-       - /api/.venv-docker
+      - /api/.venv-docker
     container_name: captura_api
     restart: unless-stopped
     ports:

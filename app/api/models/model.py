@@ -17,6 +17,7 @@ class Asset(Base):
     )
     size_bytes: Mapped[int] = mapped_column(nullable=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(index=True, default=datetime.utcnow)
+    is_seeded: Mapped[bool] = mapped_column(nullable=False, default=False, server_default="false")
     asset_variants: Mapped[list["AssetVariant"]] = relationship("AssetVariant", back_populates="asset", cascade="all, delete-orphan")
 
     search_vector: Mapped[str] = mapped_column(

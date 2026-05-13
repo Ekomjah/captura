@@ -33,3 +33,4 @@ dist-ssr
 *.tfstate.*
 .terraform.tfvars
 *.auto.tfvars
+package-lock.json

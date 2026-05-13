@@ -8,11 +8,14 @@ from fastapi.responses import JSONResponse
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
+from repo.store_variant import store_asset_variant
+from seed.seed import cleanup_seeds
 from schema.db_schema import (
     ErrorResponse,
     PaginatedAssetsResponse,
     PaginatedSearchResponse,
     UpsertRepo,
+    UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
 from services.db_service import get_db
@@ -56,7 +59,6 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
         VariantFormat.png: "image/png",
     }[fmt]
 
-
 @app.post(
     "/v1/upload",
     status_code=201,
@@ -72,6 +74,7 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
 )
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
+
         if not file.filename:
             raise UploadException(
                 error="ValidationError",
@@ -137,7 +140,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
-        db_store = UpsertRepo(
+        db_store: UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
             ocr_text=ocr_text,
             ocr_status=ocr_status,
@@ -145,7 +148,16 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             size_bytes=upload_result.size_bytes,
             created_at=datetime.utcnow(),
         )
-        await store_asset(db_store, db)
+        variant_data: UpsertRepoVariant = UpsertRepoVariant(
+            s3_key=upload_variant.s3_key,
+            format=upload_variant.format.value,
+            content_type=upload_variant.content_type,
+            size_bytes=upload_variant.size_bytes,
+            created_at=datetime.utcnow(),
+        )
+        store_asset(db_store, db)
+        store_asset_variant(variant_data, upload_result.asset_id, db)
+        cleanup_seeds(db)
         return resp
     except UploadException:
         raise

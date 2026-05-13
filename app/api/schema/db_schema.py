@@ -5,9 +5,8 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from schema.upload import UploadVariant
 
 
-# todo: the thumbnail url and variants have to be gotten during uploads as their values are not stored in the db, we can add them to the db or we can get them from s3 during retrieval, for now we will just hardcode them in the response model
 class AssetSummary(BaseModel):
-    """image obj for an image upload"""
+    """Summary for an asset: raw object plus OCR fields and persisted variant rows."""
 
     model_config = ConfigDict(from_attributes=True)
     id: str
@@ -38,6 +37,13 @@ class UpsertRepo(BaseModel):
     def normalize_status(cls, v: str) -> str:
         return v.lower()
 
+class UpsertRepoVariant(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    s3_key: str
+    format: str
+    content_type: str
+    size_bytes: int
+    created_at: datetime
 
 class PaginatedAssetsResponse(BaseModel):
     """resp model for the history endpoint"""

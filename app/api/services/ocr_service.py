@@ -4,6 +4,7 @@ from io import BytesIO
 import pytesseract
 from PIL import Image
 
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 class OCRExtractionError(Exception):
     pass

@@ -17,7 +17,7 @@ help:
 	@echo "  make lint            lint-frontend + lint-api"
 	@echo "  make lint-frontend   ESLint (frontend package)"
 	@echo "  make lint-api        ruff (app/api; ensures dev dep via uv add)"
-	@echo "  make test       pytest (app/api, Story 1.2 contract tests)"
+	@echo "  make test       pytest from app/api"
 	@echo "  make build      Production build (frontend)"
 	@echo ""
 
@@ -40,7 +40,7 @@ lint-api:
 	cd app/api && uv add --dev ruff && uv run ruff check .
 
 test:
-	uv run --project app/api pytest
+	cd app/api && uv run pytest
 
 build:
 	pnpm --filter frontend build

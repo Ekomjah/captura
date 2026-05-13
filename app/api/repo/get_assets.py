@@ -4,22 +4,33 @@ from schema.upload import UploadVariant, VariantFormat
 from sqlalchemy.orm import Session
 
 
+def _variant_format_from_db(value: str) -> VariantFormat:
+    try:
+        return VariantFormat(value)
+    except ValueError:
+        return VariantFormat.webp
+
+
 def _asset_to_summary(asset: Asset) -> AssetSummary:
-    # Find the WebP variant from persisted metadata
+    # Thumbnail: persisted WebP variant key only (no filename inference on raw asset).
     webp_variant = next(
-        (av for av in asset.asset_variants if av.format == VariantFormat.webp), None
+        (
+            av
+            for av in asset.asset_variants
+            if av.format == VariantFormat.webp.value
+        ),
+        None,
     )
-    webp_thumbnail_url = webp_variant.s3_key if webp_variant else None
+    thumbnail_url = webp_variant.s3_key if webp_variant else ""
 
     ocr_snippet = asset.ocr_text[:100] if asset.ocr_text else None
 
-    # Create variants list using persisted metadata
     variants = [
         UploadVariant(
             s3_key=asset_variant.s3_key,
-            content_type="image/webp",
+            content_type=asset_variant.content_type,
             size_bytes=asset_variant.size_bytes,
-            format=VariantFormat.webp,
+            format=_variant_format_from_db(asset_variant.format),
         )
         for asset_variant in asset.asset_variants
     ]
@@ -28,7 +39,7 @@ def _asset_to_summary(asset: Asset) -> AssetSummary:
         id=str(asset.id),
         created_at=asset.created_at,
         s3_key=str(asset.s3_key),
-        thumbnail_url=str(webp_thumbnail_url),
+        thumbnail_url=thumbnail_url,
         ocr_snippet=ocr_snippet,
         ocr_status=asset.ocr_status
         if asset.ocr_status in ("pending", "done", "failed")

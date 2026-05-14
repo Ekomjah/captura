@@ -1,32 +1,21 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
-import "./AppShell.css";
-
+import { Outlet } from "react-router";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "./AppSideBar";
+import { NavMenu } from "./NavMenu";
 export function AppShell() {
-  const location = useLocation();
-
-  const isActive = (path: string) => location.pathname === path;
-
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h1>Captura</h1>
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="flex-1 flex flex-col">
+        <div className="flex justify-between items-center border-b px-4 sticky top-0 w-full z-10 bg-background h-16">
+          <SidebarTrigger />
+          <h2 className="text-lg font-semibold">Captura</h2>
+          <NavMenu />
         </div>
-        <nav className="sidebar-nav">
-          <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
-            Gallery
-          </Link>
-          <Link
-            to="/search"
-            className={`nav-link ${isActive("/search") ? "active" : ""}`}
-          >
-            Search
-          </Link>
-        </nav>
-      </aside>
-      <main className="main-content">
-        <Outlet />
-      </main>
-    </div>
+        <main className="flex-1 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

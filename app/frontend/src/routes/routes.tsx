@@ -1,7 +1,7 @@
-import type { RouteObject } from "react-router-dom";
+import type { RouteObject } from "react-router";
 import { AppShell } from "../layouts/AppShell";
-import { GalleryPage } from "../features/gallery/GalleryPage";
-import { SearchPage } from "../features/search/SearchPage";
+import { HistoryPage } from "@/features/history/HistoryPage";
+import { SearchPage } from "@/features/search/SearchPage";
 
 export const routes: RouteObject[] = [
   {
@@ -10,12 +10,17 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <GalleryPage />,
+        element: <HistoryPage />,
       },
       {
         path: "search",
         element: <SearchPage />,
       },
     ],
+    errorElement: (
+      <div className="text-2xl font-bold min-h-screen w-full flex items-center justify-center">
+        (404) Page Not Found
+      </div>
+    ),
   },
 ];

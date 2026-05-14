@@ -16,13 +16,15 @@ import {
   Moon,
   MonitorCog,
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 export function AppSidebar() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+  const { setTheme } = useTheme();
   return (
     <Sidebar>
-      <SidebarHeader className="flex-col items-left justify-center border-b px-8 m-0 pt-8">
+      <SidebarHeader className="flex-col items-left justify-center border-b px-7 m-0 pt-8">
         <h1 className="text-2xl font-extrabold tracking-tight m-0 p-0">
           Captura
         </h1>
@@ -58,18 +60,18 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t pt-4">
         <SidebarMenu className="flex-row border rounded-lg gap-2 w-full justify-evenly">
-          <SidebarMenuItem>
-            <SidebarMenuButton>
+          <SidebarMenuItem className="p-0">
+            <SidebarMenuButton onClick={() => setTheme("light")}>
               <Sun />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
+          <SidebarMenuItem className="p-0">
+            <SidebarMenuButton onClick={() => setTheme("system")}>
               <MonitorCog />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
+          <SidebarMenuItem className="p-0">
+            <SidebarMenuButton onClick={() => setTheme("dark")}>
               <Moon />
             </SidebarMenuButton>
           </SidebarMenuItem>

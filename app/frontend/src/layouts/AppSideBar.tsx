@@ -9,12 +9,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router";
 import {
-  Images,
   FileSearchCorner,
   Settings,
   Sun,
   Moon,
   MonitorCog,
+  History,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -35,7 +35,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={isActive("/")}>
               <Link to="/">
-                <Images />
+                <History />
                 <div>History</div>
               </Link>
             </SidebarMenuButton>

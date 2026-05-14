@@ -1,4 +1,5 @@
 import logging
+import re
 
 from models.model import Asset
 from schema.db_schema import (
@@ -11,6 +12,48 @@ from sqlalchemy.orm import Session
 from repo.get_assets import _asset_to_summary
 
 logger = logging.getLogger(__name__)
+
+
+def _search_assets_sqlite(
+    db: Session, q: str, page: int, page_size: int
+) -> PaginatedSearchResponse:
+    """Substrate match for contract tests: SQLite has no FTS operators used in prod."""
+    pattern = re.compile(re.escape(q), re.IGNORECASE)
+    ordered = (
+        db.query(Asset)
+        .filter(Asset.ocr_text.isnot(None))
+        .order_by(Asset.created_at.desc())
+        .all()
+    )
+    matches: list[tuple[Asset, str | None]] = []
+    for asset in ordered:
+        if not asset.ocr_text:
+            continue
+        m = pattern.search(asset.ocr_text)
+        if not m:
+            continue
+        start = max(0, m.start() - 40)
+        end = min(len(asset.ocr_text), m.end() + 40)
+        matches.append((asset, asset.ocr_text[start:end]))
+
+    total = len(matches)
+    offset = (page - 1) * page_size
+    page_rows = matches[offset : offset + page_size]
+    items = [
+        SearchHit(
+            asset=_asset_to_summary(asset),
+            matched_text=q,
+            match_context=ctx,
+        )
+        for asset, ctx in page_rows
+    ]
+    return PaginatedSearchResponse(
+        items=items,
+        page=page,
+        page_size=page_size,
+        total=total,
+        query=q,
+    )
 
 
 async def search_assets(
@@ -26,6 +69,10 @@ async def search_assets(
             query=q,
         )
     try:
+        bind = db.get_bind()
+        if bind.dialect.name == "sqlite":
+            return _search_assets_sqlite(db, q, page, page_size)
+
         ts_query = func.plainto_tsquery("english", q)
         query = (
             db.query(

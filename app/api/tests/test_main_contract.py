@@ -22,6 +22,7 @@ from sqlalchemy.pool import StaticPool
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 
 import main
+import seed.seed as seed_module
 from main import app
 
 client = TestClient(app)
@@ -54,6 +55,7 @@ def test_session() -> Generator[Session]:
     Base.metadata.create_all(bind=engine)
 
     db = TestingSessionLocal()
+    seed_module._seeds_cleaned = False
     try:
         yield db
     finally:
@@ -155,6 +157,7 @@ def _seed_dummy_assets_for_cleanup(db: Session) -> None:
             ocr_text=f"seeded text {i}",
             ocr_status="done",
             size_bytes=1000 * i,
+            is_seeded=True,
         )
         db.add(asset)
         db.flush()

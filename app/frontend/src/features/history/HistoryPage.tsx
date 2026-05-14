@@ -3,7 +3,7 @@ import { Images } from "lucide-react";
 export function HistoryPage() {
   return (
     <div>
-      <div className="p-4 space-y-2">
+      <div className="px-7 py-4 space-y-2">
         <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
         <div className="text-blue-500 font-light text-4xl">History</div>
       </div>

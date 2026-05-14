@@ -1,9 +1,9 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router";
 import "./AppShell.css";
+import { cn } from "@/lib/utils";
 
 export function AppShell() {
   const location = useLocation();
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -13,12 +13,12 @@ export function AppShell() {
           <h1>Captura</h1>
         </div>
         <nav className="sidebar-nav">
-          <Link to="/" className={`nav-link ${isActive("/") ? "active" : ""}`}>
+          <Link to="/" className={cn("nav-link", { active: isActive("/") })}>
             Gallery
           </Link>
           <Link
             to="/search"
-            className={`nav-link ${isActive("/search") ? "active" : ""}`}
+            className={cn("nav-link", { active: isActive("/search") })}
           >
             Search
           </Link>

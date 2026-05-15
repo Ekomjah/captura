@@ -12,7 +12,7 @@ export const fetchAssets = async (
   page_size: number = 20,
 ): Promise<PaginatedAssetsResponse> => {
   const res = await api.get(
-    `/v1/history?page=${starting_page}&page_size=${page_size}`,
+    `/history?page=${starting_page}&page_size=${page_size}`,
   );
   return res.data;
 };
@@ -20,7 +20,7 @@ export const fetchAssets = async (
 export const uploadAsset = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await api.post("/v1/upload", formData, {
+  const res = await api.post("/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -34,7 +34,7 @@ export const searchAssets = async (
   page_size: number = 20,
 ): Promise<PaginatedSearchResponse> => {
   const res = await api.get(
-    `/v1/search?q=${encodeURIComponent(query)}&page=${starting_page}&page_size=${page_size}`,
+    `/search?q=${encodeURIComponent(query)}&page=${starting_page}&page_size=${page_size}`,
   );
   return res.data;
 };

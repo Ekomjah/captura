@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Images, LoaderIcon } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 export function HistoryPage() {
-  const { isPending, error, data, isFetching } = useHistoryQuery();
+  const { isPending, error, data } = useHistoryQuery();
   if (isPending) {
     return <LoaderIcon />;
   }
@@ -16,6 +16,13 @@ export function HistoryPage() {
       </div>
       <div className="flex items-center justify-center min-h-100 w-full">
         {data?.images ? (
+          data?.images.map(({ id, ocr_snippet, thumbnail_url }) => (
+            <div key={id}>
+              <img src={thumbnail_url} alt="thumbnail" />
+              <div>{ocr_snippet}</div>
+            </div>
+          ))
+        ) : (
           <div className="text-center">
             <p className="text-lg text-gray-600">
               Your uploaded captures will appear here
@@ -25,13 +32,6 @@ export function HistoryPage() {
               Upload Image
             </Button>
           </div>
-        ) : (
-          data?.images.map(({ id, ocr_snippet, thumbnail_url }) => (
-            <div key={id}>
-              <img src={thumbnail_url} alt="thumbnail" />
-              <div>{ocr_snippet}</div>
-            </div>
-          ))
         )}
       </div>
     </div>

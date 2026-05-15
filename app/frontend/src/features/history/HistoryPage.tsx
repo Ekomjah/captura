@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Images, LoaderIcon } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
+import { CardImage } from "@/features/history/asset-card/Card";
 
 export function HistoryPage() {
-  const getS3Url = (s3_key: string) =>
-    `https://captura-mvp-76d74875.s3.us-east-1.amazonaws.com/${s3_key.replace("raw", "processed").replace(/\.[^.]+$/, ".webp")}`;
   const { isPending, error, data } = useHistoryQuery();
   if (isPending) {
     return <LoaderIcon />;
@@ -17,16 +16,20 @@ export function HistoryPage() {
         <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
         <div className="text-blue-500 font-light text-4xl">History</div>
       </div>
-      <div className="grid grid-cols-3 gap-5 margin-auto max-w-400 items-center justify-center min-h-100 w-full">
+      <div className=" w-full">
         {data?.images ? (
-          data?.images.map(({ id, ocr_snippet, thumbnail_url }) => (
-            <div key={id}>
-              <img src={getS3Url(thumbnail_url)} alt="thumbnail" />
-              <div>{ocr_snippet}</div>
-            </div>
-          ))
+          <div className="grid grid-cols-3 gap-2 justify-center items-center">
+            {data?.images.map(({ id, ocr_snippet, thumbnail_url }) => (
+              <CardImage
+                key={id}
+                id={id}
+                ocr_snippet={ocr_snippet}
+                thumbnail_url={thumbnail_url}
+              />
+            ))}
+          </div>
         ) : (
-          <div className="text-center">
+          <div className="text-center flex flex-col items-center justify-center min-h-100">
             <p className="text-lg text-gray-600">
               Your uploaded captures will appear here
             </p>

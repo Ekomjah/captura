@@ -60,3 +60,8 @@ export interface PaginatedSearchResponse {
   total: number;
   query: string;
 }
+
+export interface ErrorResponse {
+  error: string;
+  detail: string;
+}

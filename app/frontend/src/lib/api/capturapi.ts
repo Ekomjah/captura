@@ -3,9 +3,11 @@ import type {
   UploadResponse,
   PaginatedAssetsResponse,
   PaginatedSearchResponse,
-} from "@/lib/types";
+} from "@/types/api";
 
-const fetchAssets = async (
+export const capturaKey = () => ["assets"];
+
+export const fetchAssets = async (
   starting_page: number = 1,
   page_size: number = 20,
 ): Promise<PaginatedAssetsResponse> => {
@@ -15,7 +17,7 @@ const fetchAssets = async (
   return res.data;
 };
 
-const uploadAsset = async (file: File): Promise<UploadResponse> => {
+export const uploadAsset = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append("file", file);
   const res = await api.post("/v1/upload", formData, {
@@ -26,7 +28,7 @@ const uploadAsset = async (file: File): Promise<UploadResponse> => {
   return res.data;
 };
 
-const searchAssets = async (
+export const searchAssets = async (
   query: string,
   starting_page: number = 1,
   page_size: number = 20,

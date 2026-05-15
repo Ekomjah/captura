@@ -5,8 +5,15 @@ export const useHistoryQuery = (
   starting_page: number = 1,
   page_size: number = 20,
 ) => {
-  return useQuery({
+  const { isPending, error, data, isFetching } = useQuery({
     queryKey: [...capturaKey(), starting_page, page_size],
     queryFn: () => fetchAssets(starting_page, page_size),
   });
+  return { isPending, error, data, isFetching };
 };
+
+
+
+
+
+

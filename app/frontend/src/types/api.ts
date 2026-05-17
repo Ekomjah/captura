@@ -1,4 +1,4 @@
-type ocrStatus = "pending" | "complete" | "error";
+type ocrStatus = "pending" | "done" | "failed";
 export enum VariantFormat {
   webp = "webp",
   jpeg = "jpeg",
@@ -11,7 +11,7 @@ export interface UploadVariant {
   content_type: string;
   size_bytes: number;
   format: VariantFormat;
-}
+} 
 export interface UploadResponse {
   // Response type for POST /v1/upload (raw object + derived variants).
 
@@ -28,7 +28,7 @@ export interface UploadResponse {
 export interface AssetSummary {
   // Summary for an asset: raw object plus OCR fields and persisted variant rows.
   id: string;
-  created_at: Date;
+  created_at: string;
   s3_key: string;
   thumbnail_url: string;
   ocr_snippet: string | null;

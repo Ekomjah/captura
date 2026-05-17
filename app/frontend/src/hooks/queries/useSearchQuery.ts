@@ -1,5 +1,6 @@
 import { queryKeys, searchAssets } from "@/lib/api/capturapi";
 import { useQuery } from "@tanstack/react-query";
+import { getApiError } from "@/lib/api/getApiError";
 
 export const useSearchQuery = (
   query: string,
@@ -10,5 +11,5 @@ export const useSearchQuery = (
     queryKey: queryKeys.search(query, starting_page, page_size),
     queryFn: () => searchAssets(query, starting_page, page_size),
   });
-  return { isPending, error, data, isFetching };
+  return { isPending, error: getApiError(error), data, isFetching };
 };

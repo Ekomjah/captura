@@ -2,13 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Images, LoaderIcon } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { CardImage } from "@/features/history/asset-card/Card";
+import { getApiError } from "@/lib/api/getApiError";
 
 export function HistoryPage() {
   const { isPending, error, data } = useHistoryQuery();
   if (isPending) {
     return <LoaderIcon />;
   }
-  if (error) return "An error has occured" + error.message;
+  if (error) {
+    const apiError = getApiError(error);
+    const errorMessage = apiError?.detail || "An error has occurred";
+    return `Error: ${errorMessage}`;
+  }
 
   return (
     <div>

@@ -1,4 +1,5 @@
 import { queryKeys, fetchAssets } from "@/lib/api/capturapi";
+import { getApiError } from "@/lib/api/getApiError";
 import { useQuery } from "@tanstack/react-query";
 
 export const useHistoryQuery = (
@@ -9,11 +10,5 @@ export const useHistoryQuery = (
     queryKey: queryKeys.history(starting_page, page_size),
     queryFn: () => fetchAssets(starting_page, page_size),
   });
-  return { isPending, error, data, isFetching };
+  return { isPending, error: getApiError(error), data, isFetching };
 };
-
-
-
-
-
-

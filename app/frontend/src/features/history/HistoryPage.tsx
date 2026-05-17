@@ -2,17 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Images, LoaderIcon } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { CardImage } from "@/features/history/asset-card/Card";
-import { getApiError } from "@/lib/api/getApiError";
 
 export function HistoryPage() {
-  const { isPending, error, data } = useHistoryQuery();
+  const { isPending, isError, error, data } = useHistoryQuery();
   if (isPending) {
     return <LoaderIcon />;
   }
-  if (error) {
-    const apiError = getApiError(error);
-    const errorMessage = apiError?.detail || "An error has occurred";
-    return `Error: ${errorMessage}`;
+  if (isError) {
+    return (
+      <p className="p-7 text-destructive">
+        Error: {error?.detail ?? "An error has occurred"}
+      </p>
+    );
   }
 
   return (
@@ -21,10 +22,10 @@ export function HistoryPage() {
         <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
         <div className="text-blue-500 font-light text-4xl">History</div>
       </div>
-      <div className=" w-full">
-        {data?.images ? (
+      <div className="w-full">
+        {data?.images && data.images.length > 0 ? (
           <div className="grid grid-cols-3 gap-2 justify-center items-center">
-            {data?.images.map(({ id, ocr_snippet, thumbnail_url }) => (
+            {data.images.map(({ id, ocr_snippet, thumbnail_url }) => (
               <CardImage
                 key={id}
                 id={id}
@@ -39,7 +40,7 @@ export function HistoryPage() {
               Your uploaded captures will appear here
             </p>
             <Button variant="outline" className="mt-6">
-              <Images></Images>
+              <Images />
               Upload Image
             </Button>
           </div>

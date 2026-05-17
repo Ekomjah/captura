@@ -1,24 +1,31 @@
 import { isAxiosError } from "axios";
 import type { ErrorResponse } from "@/lib/types/api";
 
+function isErrorResponse(data: unknown): data is ErrorResponse {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "error" in data &&
+    "detail" in data &&
+    typeof (data as ErrorResponse).error === "string" &&
+    typeof (data as ErrorResponse).detail === "string"
+  );
+}
+
 /**
- * Extracts structured error details from Axios errors
- * @param error - The error object from Axios/React Query
- * @returns ErrorResponse with backend error details, or null if not an API error
+ * Extracts structured error details from Axios or API-shaped errors.
  */
 export function getApiError(error: unknown): ErrorResponse | null {
+  if (isErrorResponse(error)) {
+    return error;
+  }
+
   if (isAxiosError(error) && error.response?.data) {
     const data = error.response.data;
-
-    // Validate that we have both error and detail fields
-    if (
-      typeof data === "object" &&
-      data !== null &&
-      "error" in data &&
-      "detail" in data
-    ) {
-      return data as ErrorResponse;
+    if (isErrorResponse(data)) {
+      return data;
     }
   }
+
   return null;
 }

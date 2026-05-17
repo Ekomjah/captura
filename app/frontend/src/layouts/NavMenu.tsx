@@ -8,7 +8,7 @@ import { MenuSearchBar } from "./SearchBar";
 
 export function NavMenu() {
   return (
-    <NavigationMenu className="p-2">
+    <NavigationMenu className="p-2 z-10">
       <NavigationMenuList className="flex space-x-4">
         <NavigationMenuItem>
           <MenuSearchBar />

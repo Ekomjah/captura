@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge";
+
+import { ImageWithFallback } from "@/hooks/ImageError";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tag } from "lucide-react";
+import { UploadDialog } from "../upload-dialog/Dialog";
 
 interface CardProps {
   id: string;
@@ -26,14 +30,11 @@ export function CardImage({ id, ocr_snippet, thumbnail_url }: CardProps) {
       .replace(/\.[^.]+$/, "");
   return (
     <Card className="relative mx-auto w-full max-w-70 pt-0">
-      <div
-        key={id}
-        className="absolute inset-0 z-30 aspect-video bg-black/35"
-      />
-      <img
+      <div key={id} className="absolute inset-0 aspect-video bg-black/35" />
+      <ImageWithFallback
         src={getS3Url(thumbnail_url)}
-        alt="Event cover"
-        className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
+        alt="Asset cover"
+        className="relative aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
       />
       <CardHeader>
         <CardAction>
@@ -45,7 +46,9 @@ export function CardImage({ id, ocr_snippet, thumbnail_url }: CardProps) {
         <CardDescription>{ocr_snippet}</CardDescription>
       </CardHeader>
       <CardFooter>
-        <Button className="w-full">View Asset</Button>
+        <UploadDialog
+          content={<Button className="w-full">View Asset</Button>}
+        />
       </CardFooter>
     </Card>
   );

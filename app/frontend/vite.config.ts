@@ -11,4 +11,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      // String shorthand: http://localhost:5173/api -> http://localhost:5000/api
+      "/v1": {
+        target: "http://localhost:8000", // Your backend URL
+        changeOrigin: true,
+        secure: false, // If using self-signed certificates
+      },
+    },
+  },
 });

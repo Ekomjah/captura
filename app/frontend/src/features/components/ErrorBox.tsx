@@ -1,7 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { capturaKey } from "@/lib/api/capturapi";
 
-export default function ErrorBox({ message }: { message: string }) {
+type ErrorBoxProps = {
+  message: string;
+  queryKey: unknown[];
+};
+
+export default function ErrorBox({ message, queryKey }: ErrorBoxProps) {
   const queryClient = useQueryClient();
 
   return (
@@ -15,9 +19,7 @@ export default function ErrorBox({ message }: { message: string }) {
       </p>
       <button
         className="px-3 py-1 h-9 flex place-items-center mx-auto rounded bg-red-600 text-sm"
-        onClick={() =>
-          queryClient.invalidateQueries({ queryKey: capturaKey() })
-        }
+        onClick={() => queryClient.invalidateQueries({ queryKey })}
       >
         Retry
       </button>

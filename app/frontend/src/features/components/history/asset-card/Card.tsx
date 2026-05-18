@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Tag } from "lucide-react";
 import { UploadDialog } from "../upload-dialog/Dialog";
+import { shortenText } from "@/lib/utils/textShortener";
 
 interface CardProps {
   id: string;
@@ -24,10 +25,13 @@ export function CardImage({ id, ocr_snippet, thumbnail_url }: CardProps) {
   const getS3Url = (s3_key: string) =>
     `https://captura-mvp-76d74875.s3.us-east-1.amazonaws.com/${s3_key.replace("raw", "processed").replace(/\.[^.]+$/, ".webp")}`;
   const getFileName = (s3_key: string) =>
-    s3_key
-      .split("/")
-      .slice(-1)[0]
-      .replace(/\.[^.]+$/, "");
+    shortenText(
+      s3_key
+        .split("/")
+        .slice(-1)[0]
+        .replace(/\.[^.]+$/, ""),
+      15,
+    );
   return (
     <Card className="relative mx-auto w-full max-w-70 pt-0">
       <div key={id} className="absolute inset-0 aspect-video bg-black/35" />
@@ -43,7 +47,9 @@ export function CardImage({ id, ocr_snippet, thumbnail_url }: CardProps) {
           </Badge>
         </CardAction>
         <CardTitle>{getFileName(thumbnail_url)}</CardTitle>
-        <CardDescription>{ocr_snippet}</CardDescription>
+        <CardDescription>
+          <blockquote>{ocr_snippet}</blockquote>
+        </CardDescription>
       </CardHeader>
       <CardFooter>
         <UploadDialog

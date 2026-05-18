@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import type { JSX } from "react";
-import React from "react";
 import {
   Dialog,
   DialogClose,
@@ -16,21 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Images } from "lucide-react";
 
-// Define the props interface
-type WrapperProps = {
-  content: JSX.Element; // Accepts a single JSX element
-};
-
-export const UploadDialog: React.FC<WrapperProps> = ({ content }) => (
+export const UploadDialog = () => (
   <Dialog>
     <form>
       <DialogTrigger asChild>
-        {content || (
-          <Button variant="outline">
-            <Images></Images>
-            Upload Image
-          </Button>
-        )}
+        <Button variant="outline">
+          <Images></Images>
+          Upload Image
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>

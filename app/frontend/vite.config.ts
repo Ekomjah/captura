@@ -13,9 +13,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // String shorthand: http://localhost:5173/api -> http://localhost:5000/api
       "/v1": {
-        target: "http://localhost:8000", // Your backend URL
+        target: "http://localhost:8000", // the backend URL
         changeOrigin: true,
         secure: false, // If using self-signed certificates
       },

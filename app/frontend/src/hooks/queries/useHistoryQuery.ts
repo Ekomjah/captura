@@ -6,9 +6,15 @@ export const useHistoryQuery = (
   starting_page: number = 1,
   page_size: number = 20,
 ) => {
-  const { isPending, isError,error, data, isFetching } = useQuery({
+  const { isPending, isError, error, data, isFetching } = useQuery({
     queryKey: queryKeys.history(starting_page, page_size),
     queryFn: () => fetchAssets(starting_page, page_size),
   });
-  return { isPending, isError, error: getApiError(error), data, isFetching };
+  return {
+    isPending,
+    isError,
+    error: getApiError(error),
+    data,
+    isFetching,
+  };
 };

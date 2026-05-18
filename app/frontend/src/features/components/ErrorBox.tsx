@@ -1,8 +1,10 @@
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
+import type { QueryKey } from "@tanstack/react-query";
 
 type ErrorBoxProps = {
   message: string;
-  queryKey: unknown[];
+  queryKey: QueryKey;
 };
 
 export default function ErrorBox({ message, queryKey }: ErrorBoxProps) {
@@ -10,19 +12,19 @@ export default function ErrorBox({ message, queryKey }: ErrorBoxProps) {
 
   return (
     <div
-      className="w-full flex flex-col min-h-100 text-center justify-center items-center mx-auto"
+      className="w-full flex flex-col min-h-100 text-center text-destructive justify-center items-center mx-auto"
       role="alert"
     >
-      <p className="font-semibold text-red-700">Error loading assets</p>
-      <p className="text-sm text-red-600 mb-2" aria-live="polite">
+      <p className="font-semibold">Error loading assets</p>
+      <p className="text-sm text-muted-foreground mb-2" aria-live="polite">
         {message}
       </p>
-      <button
-        className="px-3 py-1 h-9 flex place-items-center mx-auto rounded bg-red-600 text-sm"
+      <Button
+        className="px-3 py-1 h-9 flex place-items-center mx-auto rounded text-sm"
         onClick={() => queryClient.invalidateQueries({ queryKey })}
       >
         Retry
-      </button>
+      </Button>
     </div>
   );
 }

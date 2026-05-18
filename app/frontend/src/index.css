@@ -70,7 +70,7 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.96 0.003 286.033);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.45 0.085 224.283);
+  --sidebar-primary: oklch(45.098% 0.08458 223.821);
   --sidebar-primary-foreground: oklch(0.984 0.019 200.873);
   --sidebar-accent: oklch(0.96 0.003 286.033);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);

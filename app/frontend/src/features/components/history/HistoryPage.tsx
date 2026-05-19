@@ -5,15 +5,19 @@ import { CardImage } from "@/features/components/history/asset-card/Card";
 import { shortenText } from "@/lib/utils/textShortener";
 import ErrorBox from "../ErrorBox";
 import { queryKeys } from "@/lib/api/capturapi";
+import { UploadDialog } from "./dialog/UploadDialog";
 
 export function HistoryPage() {
   const { isPending, isError, error, data } = useHistoryQuery();
 
   return (
     <div>
-      <div className="px-7 py-4 space-y-2">
-        <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-        <div className="text-blue-500 font-light text-4xl">History</div>
+      <div className="px-7 py-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
+          <p className="text-blue-500 font-light text-4xl">History</p>
+        </div>
+        <UploadDialog />
       </div>
       <div className="mb-10 p-8 w-full">
         {isPending && (

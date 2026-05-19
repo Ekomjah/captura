@@ -73,6 +73,9 @@ export const UploadDialog = () => {
               <div className="font-medium text-gray-500 flex flex-col items-center justify-center gap-2">
                 <p>Drag an asset here;</p>
                 <p>Or click to select a file</p>
+                <Button variant="secondary" className="rounded">
+                  Add Asset
+                </Button>
               </div>
             )}
           </div>

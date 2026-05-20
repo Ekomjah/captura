@@ -2,6 +2,7 @@ import { Outlet } from "react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSideBar";
 import { NavMenu } from "./NavMenu";
+import { Toaster } from "sonner";
 export function AppShell() {
   return (
     <SidebarProvider>
@@ -15,6 +16,7 @@ export function AppShell() {
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
+        <Toaster position="top-center" />
       </div>
     </SidebarProvider>
   );

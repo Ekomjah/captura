@@ -8,12 +8,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, CloudUpload, LoaderCircle } from "lucide-react";
+import { Plus, CloudUpload, LoaderCircle, RotateCcw } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useUploadMutation } from "@/hooks/mutations/useUploadMutation";
 import { useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { AssetUploadPreview } from "./UploadPreview";
+import { toast } from "sonner";
 
 interface OnDropCallback {
   (acceptedFiles: File[]): void;
@@ -23,7 +24,21 @@ export const UploadDialog = () => {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { mutate, isPending } = useUploadMutation(() => setOpen(false));
+  const { mutate, isPending, isError, isSuccess } = useUploadMutation(() =>
+    setOpen(false),
+  );
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Asset uploaded successfully!");
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to upload asset. Please try again.");
+    }
+  }, [isError]);
 
   const onDrop = useCallback<OnDropCallback>((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -150,6 +165,15 @@ export const UploadDialog = () => {
                 "Upload Asset"
               )}
             </Button>
+            {isError && (
+              <Button
+                variant="destructive"
+                onClick={() => mutate(selectedFile!)}
+              >
+                <RotateCcw />
+                Retry
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

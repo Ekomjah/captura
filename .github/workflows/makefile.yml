@@ -7,6 +7,31 @@ on:
     branches: ["main", "feat/**"]
 
 jobs:
+
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # needed to read full commit history
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint commits
+        run: |
+          pnpm exec commitlint \
+            --from ${{ github.event.pull_request.base.sha || 'HEAD~1' }} \
+            --to HEAD \
+            --verbose
   build:
     runs-on: ubuntu-latest
 

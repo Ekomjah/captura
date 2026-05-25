@@ -56,6 +56,9 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v4
 
+      - name: Check Node version
+        run: node -v
+
       - name: Install dependencies
         run: make install
 

@@ -9,10 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { AssetDetails } from "../asset-card/AssetDetails";
 
 interface AssetDialogProps {
   id: string;
@@ -37,44 +34,12 @@ export const AssetDialog = ({
           <DialogDescription>Have a look at this asset</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col lg:flex-row gap-6 py-4 items-start">
-          <a
-            href={thumbnail_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full max-w-70 rounded-lg overflow-hidden"
-          >
-            <img
-              src={thumbnail_url}
-              alt="asset view"
-              className="w-full max-w-70 rounded-lg object-fit"
-            />
-          </a>
-          <div className="w-full space-y-4 border-l border-gray-700 pl-4">
-            <FieldGroup>
-              <Field>
-                <Label htmlFor={id}>Asset Name</Label>
-                <Input
-                  id={id}
-                  name="name"
-                  className="w-full"
-                  disabled
-                  defaultValue={fileName}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor={`${id}-snippet`}>Asset Snippet</Label>
-                <Textarea
-                  id={`${id}-snippet`}
-                  className="w-full"
-                  disabled
-                  name="snippet"
-                  defaultValue={ocr_snippet ?? "No OCR snippet available"}
-                />
-              </Field>
-            </FieldGroup>
-          </div>
-        </div>
+        <AssetDetails
+          thumbnail_url={thumbnail_url}
+          ocr_snippet={ocr_snippet}
+          id={id}
+          fileName={fileName}
+        />
 
         <DialogFooter>
           <DialogClose asChild>

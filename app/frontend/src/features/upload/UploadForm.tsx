@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useUploadMutation } from "@/hooks/mutations/useUploadMutation";
 import { getApiError } from "@/lib/api/getApiError";
+import type { UploadResponse } from "@/lib/types/api";
 import { LoaderCircle, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { UploadErrorAlert } from "./UploadErrorAlert";
@@ -9,9 +10,10 @@ import { UploadZone } from "./UploadZone";
 
 type UploadFormProps = {
   className?: string;
+  onSuccess?: (response: UploadResponse) => void;
 };
 
-export function UploadForm({ className }: UploadFormProps) {
+export function UploadForm({ className, onSuccess }: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -23,7 +25,9 @@ export function UploadForm({ className }: UploadFormProps) {
     error,
     data,
     reset: resetMutation,
-  } = useUploadMutation();
+  } = useUploadMutation({
+    onSuccess,
+  });
 
   const clearSelection = useCallback(() => {
     if (previewUrl) {
@@ -130,7 +134,7 @@ export function UploadForm({ className }: UploadFormProps) {
               </Button>
             )}
             <Button type="submit" disabled={!selectedFile || isPending}>
-              {isPending ? (
+              {isPending && !isError ? (
                 <span className="gap-2 flex items-center">
                   <LoaderCircle className="size-4 animate-spin" />
                   Uploading...

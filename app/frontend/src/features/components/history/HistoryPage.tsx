@@ -1,20 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { UploadForm } from "@/features/upload";
+import { UploadModal } from "@/features/upload";
 import { Images, LoaderCircle } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { CardImage } from "@/features/components/history/asset-card/Card";
 import { shortenText } from "@/lib/utils/textShortener";
 import ErrorBox from "../ErrorBox";
 import { queryKeys } from "@/lib/api/capturapi";
-import { useRef } from "react";
+import { useState } from "react";
 
 export function HistoryPage() {
   const { isPending, isError, error, data } = useHistoryQuery();
-  const uploadSectionRef = useRef<HTMLElement>(null);
-
-  const scrollToUpload = () => {
-    uploadSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   return (
     <div>
@@ -23,13 +19,14 @@ export function HistoryPage() {
         <p className="text-blue-500 font-light text-4xl">History</p>
       </div>
 
-      <section
-        ref={uploadSectionRef}
-        aria-label="Upload"
-        className="px-7 pb-6 max-w-2xl"
-      >
-        <UploadForm />
-      </section>
+      <div className="px-7 pb-6 max-w-2xl">
+        <Button onClick={() => setUploadModalOpen(true)} className="w-full">
+          <Images className="mr-2" />
+          Upload Image
+        </Button>
+      </div>
+
+      <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
 
       <div className="mb-10 p-8 w-full">
         {isPending && (
@@ -64,7 +61,7 @@ export function HistoryPage() {
               type="button"
               variant="outline"
               className="mt-6"
-              onClick={scrollToUpload}
+              onClick={() => setUploadModalOpen(true)}
             >
               <Images />
               Upload Image

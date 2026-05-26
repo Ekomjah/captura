@@ -32,7 +32,7 @@ export function UploadModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-lg">
         <DialogHeader>
           <DialogTitle>Upload Image</DialogTitle>
           <DialogDescription>
@@ -40,6 +40,7 @@ export function UploadModal({
           </DialogDescription>
         </DialogHeader>
         <UploadForm
+          className="w-full"
           onSuccess={() => {
             // Keep modal open after success so user can see the summary
             // They can click the "Upload another" button or close the modal

@@ -14,13 +14,13 @@ export function HistoryPage() {
 
   return (
     <div>
-      <div className="px-7 py-4">
-        <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-        <p className="text-blue-500 font-light text-4xl">History</p>
-      </div>
+      <div className="flex justify-between items-center w-full px-7 py-4">
+        <div className="px-7 py-4">
+          <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
+          <p className="text-blue-500 font-light text-4xl">History</p>
+        </div>
 
-      <div className="px-7 pb-6 max-w-2xl">
-        <Button onClick={() => setUploadModalOpen(true)} className="w-full">
+        <Button onClick={() => setUploadModalOpen(true)}>
           <Images className="mr-2" />
           Upload Image
         </Button>

@@ -1,20 +1,25 @@
 import { queryKeys, uploadAsset } from "@/lib/api/capturapi";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getApiError } from "@/lib/api/getApiError";
+import type { UploadResponse } from "@/lib/types/api";
+import {
+  useMutation,
+  useQueryClient,
+  type UseMutationResult,
+} from "@tanstack/react-query";
 
-export const useUploadMutation = (onSuccess?: () => void) => {
+export type UseUploadMutationOptions = {
+  onSuccess?: (data: UploadResponse) => void;
+};
+
+export function useUploadMutation(
+  options?: UseUploadMutationOptions,
+): UseMutationResult<UploadResponse, Error, File> {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (file: File) => uploadAsset(file),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.history(1, 20) });
-      onSuccess?.();
-      console.log("Asset uploaded successfully.");
-    },
-    onError: (error) => {
-      const apiError = getApiError(error);
-      console.error(apiError?.detail ?? "An unknown error occurred.");
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.all() });
+      options?.onSuccess?.(data);
     },
   });
-};
+}

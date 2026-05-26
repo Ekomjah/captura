@@ -11,8 +11,6 @@ export const queryKeys = {
     [...queryKeys.all(), "history", { page, page_size }] as const,
   search: (q: string, page: number, page_size: number) =>
     [...queryKeys.all(), "search", q, { page, page_size }] as const,
-  upload: (file_name: string) =>
-    [...queryKeys.all(), "upload", file_name] as const,
 };
 
 export const fetchAssets = async (

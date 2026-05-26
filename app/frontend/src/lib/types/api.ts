@@ -1,4 +1,5 @@
-type ocrStatus = "pending" | "done" | "failed";
+export type OcrStatus = "pending" | "done" | "failed";
+type ocrStatus = OcrStatus;
 export enum VariantFormat {
   webp = "webp",
   jpeg = "jpeg",

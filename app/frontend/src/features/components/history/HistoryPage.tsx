@@ -7,6 +7,7 @@ import { shortenText } from "@/lib/utils/textShortener";
 import ErrorBox from "../ErrorBox";
 import { queryKeys } from "@/lib/api/capturapi";
 import { useState } from "react";
+import { HistoryPagination } from "./HistoryPagination";
 
 export function HistoryPage() {
   const { isPending, isError, error, data } = useHistoryQuery();
@@ -69,6 +70,7 @@ export function HistoryPage() {
           </div>
         )}
       </div>
+      <HistoryPagination />
     </div>
   );
 }

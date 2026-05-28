@@ -1,0 +1,19 @@
+import { Separator } from "@/components/ui/separator";
+
+interface MetadataHUDProps {
+  resolution: string;
+  fileSize: string;
+  fileType: string;
+}
+
+export function MetadataHUD({ resolution, fileSize, fileType }: MetadataHUDProps) {
+  return (
+    <div className="absolute bottom-4 left-4 flex items-center gap-3 px-4 py-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg">
+      <span className="text-sm text-gray-400">{resolution}</span>
+      <Separator orientation="vertical" className="h-4" />
+      <span className="text-sm text-gray-400">{fileSize}</span>
+      <Separator orientation="vertical" className="h-4" />
+      <span className="text-sm text-gray-400">{fileType}</span>
+    </div>
+  );
+}

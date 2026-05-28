@@ -39,13 +39,7 @@ export function UploadModal({
             Upload a single image. Supported formats: JPEG, PNG, WebP.
           </DialogDescription>
         </DialogHeader>
-        <UploadForm
-          className="w-full"
-          onSuccess={() => {
-            // Keep modal open after success so user can see the summary
-            // They can click the "Upload another" button or close the modal
-          }}
-        />
+        <UploadForm className="w-full" key={String(isOpen)} />
       </DialogContent>
     </Dialog>
   );

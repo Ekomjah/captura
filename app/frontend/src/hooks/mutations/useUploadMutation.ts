@@ -19,7 +19,9 @@ export function useUploadMutation(
     mutationFn: (file: File) => uploadAsset(file),
     onSuccess: (data) => {
       // Invalidate only history queries, not search or other queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.history(1, 20) });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.all(), "history"],
+      });
       options?.onSuccess?.(data);
     },
   });

@@ -1,7 +1,7 @@
 import type { RouteObject } from "react-router";
 import { AppShell } from "../layouts/AppShell";
-import { HistoryPage } from "@/features/history/HistoryPage";
-import { SearchPage } from "@/features/search/SearchPage";
+import { HistoryPage } from "@/features/components/history/HistoryPage";
+import { SearchPage } from "@/features/components/search/SearchPage";
 
 export const routes: RouteObject[] = [
   {

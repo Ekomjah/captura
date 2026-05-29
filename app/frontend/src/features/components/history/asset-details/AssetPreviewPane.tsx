@@ -1,7 +1,11 @@
 import type { AssetSummary } from "@/lib/types/api";
 import { getPreviewUrl } from "@/lib/utils/assetHelpers";
 import { MetadataHUD } from "./MetadataHUD";
-import { getFileType, getTotalSize, getResolution } from "@/lib/utils/assetHelpers";
+import {
+  getFileType,
+  getTotalSize,
+  getResolution,
+} from "@/lib/utils/assetHelpers";
 import { formatFileSize } from "@/lib/utils/fileSizeFormatter";
 
 interface AssetPreviewPaneProps {
@@ -15,7 +19,7 @@ export function AssetPreviewPane({ asset }: AssetPreviewPaneProps) {
   const resolution = getResolution(asset);
 
   return (
-    <div className="relative w-full lg:w-3/4 bg-[#131316] min-h-[600px] lg:min-h-[870px]">
+    <div className="relative w-full lg:w-3/4 bg-[#131316] h-full flex items-center justify-center rounded-lg">
       <div className="absolute inset-0 flex items-center justify-center p-8">
         {previewUrl ? (
           <img

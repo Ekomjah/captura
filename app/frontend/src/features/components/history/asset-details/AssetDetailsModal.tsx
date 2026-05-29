@@ -12,11 +12,9 @@ interface AssetDetailsModalProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function AssetDetailsModal({
-  asset,
-}: AssetDetailsModalProps) {
+export function AssetDetailsModal({ asset }: AssetDetailsModalProps) {
   return (
-    <div className="flex flex-col lg:flex-row h-full min-h-[600px] lg:min-h-[870px]">
+    <div className="flex flex-col lg:flex-row items-center justify-center h-full">
       <AssetPreviewPane asset={asset} />
       <div className="w-full lg:w-1/4 bg-[#19191d] flex flex-col">
         <AssetSidebarPane asset={asset}>

@@ -27,6 +27,7 @@ export function getFileType(asset: AssetSummary): string {
   return ext || "IMAGE";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getResolution(_asset: AssetSummary): string {
   return "—";
 }

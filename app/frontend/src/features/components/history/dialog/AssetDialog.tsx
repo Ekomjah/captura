@@ -12,7 +12,7 @@ export const AssetDialog = ({ asset, children }: AssetDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="!w-[80vw] !max-w-[1600px] h-auto max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="!w-[80vw] !max-w-[1600px] h-auto max-h-[90vh]">
         <AssetDetailsModal asset={asset} open={true} onOpenChange={() => {}} />
       </DialogContent>
     </Dialog>

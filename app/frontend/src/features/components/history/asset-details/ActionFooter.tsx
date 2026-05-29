@@ -47,7 +47,7 @@ export function ActionFooter({ asset }: ActionFooterProps) {
         className="flex-1 bg-gradient-to-r from-[#699cff] to-[#5a8ae6] hover:from-[#5a8ae6] hover:to-[#4b7ad7]"
       >
         <Download className="size-4 mr-2" />
-        Download WebP
+        Download
       </Button>
       <Button
         onClick={handleCopyText}

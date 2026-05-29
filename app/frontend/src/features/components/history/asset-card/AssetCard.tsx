@@ -1,6 +1,7 @@
 import {
   Card,
   CardAction,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -30,7 +31,7 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         role="button"
         tabIndex={0}
         {...props}
-        className="relative mx-auto w-full max-w-70 cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 focus:ring-2 focus:ring-primary/50 outline-none"
+        className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 focus:ring-2 focus:ring-primary/50 outline-none"
       >
         <AssetCardThumbnail asset={asset} />
         <CardHeader>
@@ -39,19 +40,21 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
           </CardAction>
           <CardTitle>{shortenText(displayName, 30)}</CardTitle>
           <CardDescription>
-            <time className="text-xs text-muted-foreground block mb-2">
+            <time className="text-xs text-muted-foreground block">
               {formattedDate}
             </time>
-            {asset.ocr_snippet && (
-              <p className="block bg-secondary/30 text-muted-foreground px-3 py-2.5 text-sm font-medium italic leading-relaxed border-l-3 border-primary/30 rounded">
-                {shortenText(asset.ocr_snippet, 60)}
-              </p>
-            )}
           </CardDescription>
         </CardHeader>
+        {asset.ocr_snippet && (
+          <CardContent className="mt-auto">
+            <p className="bg-secondary/30 text-muted-foreground px-3 py-2.5 text-sm font-medium italic leading-relaxed border-l-3 border-primary/30 rounded">
+              {shortenText(asset.ocr_snippet, 60)}
+            </p>
+          </CardContent>
+        )}
       </Card>
     );
-  }
+  },
 );
 
 AssetCard.displayName = "AssetCard";

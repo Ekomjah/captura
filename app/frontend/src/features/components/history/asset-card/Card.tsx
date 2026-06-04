@@ -11,7 +11,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { AssetDetails } from "../asset-card/AssetDetails";
+import { AssetDetails } from "./AssetDetails";
 
 import {
   Dialog,

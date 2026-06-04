@@ -24,5 +24,8 @@ export function useUploadMutation(
       });
       options?.onSuccess?.(data);
     },
+    onError: (error) => {
+      console.error("Upload failed:", error);
+    },
   });
 }

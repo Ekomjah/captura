@@ -7,15 +7,21 @@ interface OCRTextSectionProps {
   ocr_status: OcrStatus;
 }
 
-export function OCRTextSection({ ocr_snippet, ocr_status }: OCRTextSectionProps) {
+export function OCRTextSection({
+  ocr_snippet,
+  ocr_status,
+}: OCRTextSectionProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-xs uppercase tracking-wide text-gray-500">
           Extracted OCR Text
         </h3>
-        {ocr_status === "done" && (
-          <Badge variant="default" className="bg-green-600 flex items-center gap-1">
+        {ocr_status === "done" && ocr_snippet && (
+          <Badge
+            variant="default"
+            className="bg-green-600 flex items-center gap-1"
+          >
             <CheckCircle className="size-3" />
             High Confidence
           </Badge>

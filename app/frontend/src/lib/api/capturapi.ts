@@ -30,7 +30,7 @@ export const uploadAsset = async (file: File): Promise<UploadResponse> => {
     headers: {
       "Content-Type": "multipart/form-data",
     },
-    timeout: 120000,
+    timeout: 12000,
   });
   return res.data;
 };

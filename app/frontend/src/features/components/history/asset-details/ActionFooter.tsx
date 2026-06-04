@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Download } from "lucide-react";
 import type { AssetSummary } from "@/lib/types/api";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ActionFooterProps {
   asset: AssetSummary;
@@ -25,13 +26,14 @@ export function ActionFooter({ asset }: ActionFooterProps) {
 
   const handleCopyText = async () => {
     if (asset.ocr_snippet) {
-      setIsCopying(true);
       try {
         await navigator.clipboard.writeText(asset.ocr_snippet);
+        setIsCopying(true);
+        toast.success("Text copied to clipboard!");
+        setTimeout(() => setIsCopying(false), 5000);
       } catch (error) {
         console.error("Failed to copy text:", error);
-      } finally {
-        setIsCopying(false);
+        toast.error("Failed to copy text. Please try again.");
       }
     }
   };

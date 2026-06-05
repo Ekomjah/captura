@@ -17,8 +17,10 @@ import {
   History,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useSearch } from "@/context/SearchContext";
 
 export function AppSidebar() {
+  const { focusSearch } = useSearch();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const { setTheme } = useTheme();
@@ -41,7 +43,11 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/search")}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/search")}
+              onClick={focusSearch}
+            >
               <Link to="/search">
                 <FileSearchCorner />
                 <div>Search</div>

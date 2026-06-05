@@ -1,5 +1,6 @@
 import type { AssetSummary } from "@/lib/types/api";
 import { getPreviewUrl } from "@/lib/utils/assetHelpers";
+import { ImageWithFallback } from "@/hooks/ImageError";
 import { MetadataHUD } from "./MetadataHUD";
 import {
   getFileType,
@@ -21,15 +22,11 @@ export function AssetPreviewPane({ asset }: AssetPreviewPaneProps) {
   return (
     <div className="relative w-full lg:w-3/4 bg-[#131316] h-full flex items-center justify-center rounded-lg">
       <div className="absolute inset-0 flex items-center justify-center p-8">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt={`Asset ${asset.id}`}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-          />
-        ) : (
-          <div className="text-gray-500 text-lg">No preview available</div>
-        )}
+        <ImageWithFallback
+          src={previewUrl}
+          alt={`Asset ${asset.id}`}
+          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+        />
       </div>
       <MetadataHUD
         resolution={resolution}

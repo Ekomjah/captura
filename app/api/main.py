@@ -43,6 +43,7 @@ origins = [
     "http://localhost:5174",
     "http://localhost:3000",
     "https://captura-frontend-kappa.vercel.app",
+    "https://captura-frontend-97r0gavl7-ekomjahs-projects.vercel.app",
 ]
 
 app.add_middleware(

@@ -8,7 +8,7 @@ interface AssetCardThumbnailProps {
 }
 
 export function AssetCardThumbnail({ asset }: AssetCardThumbnailProps) {
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState<boolean | null>(null);
   const previewUrl = getPreviewUrl(asset);
 
   if (!previewUrl || hasError) {
@@ -19,6 +19,7 @@ export function AssetCardThumbnail({ asset }: AssetCardThumbnailProps) {
     <div className="aspect-video w-full overflow-hidden">
       <img
         src={previewUrl}
+        onLoad={() => setHasError(false)}
         alt={`Asset ${asset.id}`}
         className="w-full h-full object-cover"
         onError={() => setHasError(true)}

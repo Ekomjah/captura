@@ -8,8 +8,6 @@ import { Separator } from "@/components/ui/separator";
 
 interface AssetDetailsModalProps {
   asset: AssetSummary;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
 export function AssetDetailsModal({ asset }: AssetDetailsModalProps) {

@@ -28,7 +28,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/captura-api/:v$(date +%s)
+            ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:${{ github.sha }}
 
       - name: Trigger Render deploy
         run: |

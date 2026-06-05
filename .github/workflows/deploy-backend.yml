@@ -27,8 +27,8 @@ jobs:
           context: ./app/api
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/captura-backend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/captura-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:/v$(date +%s)
 
       - name: Trigger Render deploy
         run: |

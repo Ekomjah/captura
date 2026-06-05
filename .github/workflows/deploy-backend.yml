@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "app/api/**"             # only runs when backend code changes
+      - "app/api/**"
       - ".github/workflows/deploy-backend.yml"
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ./api          # path to your Dockerfile
+          context: ./app/api
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/captura-backend:latest

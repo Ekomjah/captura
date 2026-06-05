@@ -133,16 +133,18 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
                 Retry
               </Button>
             )}
-            <Button type="submit" disabled={!selectedFile || isPending}>
-              {isPending && !isError ? (
-                <span className="gap-2 flex items-center">
-                  <LoaderCircle className="size-4 animate-spin" />
-                  Uploading...
-                </span>
-              ) : (
-                "Upload"
-              )}
-            </Button>
+            {!isError && selectedFile && (
+              <Button type="submit" disabled={!selectedFile || isPending}>
+                {isPending && !isError ? (
+                  <span className="gap-2 flex items-center">
+                    <LoaderCircle className="size-4 animate-spin" />
+                    Uploading...
+                  </span>
+                ) : (
+                  "Upload"
+                )}
+              </Button>
+            )}
           </div>
         </form>
       )}

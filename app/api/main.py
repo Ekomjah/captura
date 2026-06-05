@@ -4,12 +4,12 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
 from repo.store_variant import store_asset_variant
-from seed.seed import cleanup_seeds
 from schema.db_schema import (
     ErrorResponse,
     PaginatedAssetsResponse,
@@ -18,6 +18,7 @@ from schema.db_schema import (
     UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
+from seed.seed import cleanup_seeds
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
@@ -35,6 +36,22 @@ logging.basicConfig(
 logging.getLogger().setLevel(logging.DEBUG)
 for logger_name in ["repo", "services", "models", "schema"]:
     logging.getLogger(logger_name).setLevel(logging.DEBUG)
+
+
+origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    "https://captura-frontend-kappa.vercel.app",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o for o in origins if o],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class UploadException(Exception):
@@ -59,6 +76,7 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
         VariantFormat.png: "image/png",
     }[fmt]
 
+
 @app.post(
     "/v1/upload",
     status_code=201,
@@ -74,7 +92,6 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
 )
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
-
         if not file.filename:
             raise UploadException(
                 error="ValidationError",

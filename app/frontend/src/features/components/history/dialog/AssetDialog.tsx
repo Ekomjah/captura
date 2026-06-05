@@ -1,51 +1,19 @@
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { AssetDetails } from "../asset-card/AssetDetails";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { AssetDetailsModal } from "../asset-details/AssetDetailsModal";
+import type { AssetSummary } from "@/lib/types/api";
+import type { ReactNode } from "react";
 
 interface AssetDialogProps {
-  id: string;
-  ocr_snippet: string | null;
-  thumbnail_url: string;
-  fileName: string;
+  asset: AssetSummary;
+  children: ReactNode;
 }
-export const AssetDialog = ({
-  id,
-  ocr_snippet,
-  thumbnail_url,
-  fileName,
-}: AssetDialogProps) => {
+
+export const AssetDialog = ({ asset, children }: AssetDialogProps) => {
   return (
     <Dialog>
-      <DialogTrigger className="w-full!" asChild>
-        <Button>View Asset</Button>
-      </DialogTrigger>
-      <DialogContent className="w-full sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>View Asset</DialogTitle>
-          <DialogDescription>Have a look at this asset</DialogDescription>
-        </DialogHeader>
-
-        <AssetDetails
-          thumbnail_url={thumbnail_url}
-          ocr_snippet={ocr_snippet}
-          id={id}
-          fileName={fileName}
-        />
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-        </DialogFooter>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="!w-[80vw] !max-w-[1600px] h-auto max-h-[90vh]">
+        <AssetDetailsModal asset={asset} />
       </DialogContent>
     </Dialog>
   );

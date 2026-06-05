@@ -3,6 +3,7 @@ import { Copy, Download } from "lucide-react";
 import type { AssetSummary } from "@/lib/types/api";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getPreviewUrl } from "@/lib/utils/assetHelpers";
 
 interface ActionFooterProps {
   asset: AssetSummary;
@@ -11,19 +12,29 @@ interface ActionFooterProps {
 export function ActionFooter({ asset }: ActionFooterProps) {
   const [isCopying, setIsCopying] = useState(false);
 
-  const handleDownloadWebP = () => {
-    const webpVariant = asset.variants.find((v) => v.format === "webp");
-    if (webpVariant) {
-      const url = `https://captura-mvp-76d74875.s3.us-east-1.amazonaws.com/${webpVariant.s3_key}`;
+  const handleDownloadWebP = async () => {
+    const url = getPreviewUrl(asset);
+    if (!url) return;
+
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
       const link = document.createElement("a");
-      link.href = url;
-      link.download = webpVariant.s3_key.split("/").pop() || "download.webp";
+      link.href = blobUrl;
+      link.download = url.split("/").pop() || "download.webp";
       document.body.appendChild(link);
       link.click();
+      toast.success("Asset successfully downloaded");
       document.body.removeChild(link);
+
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Download failed. Please try again.");
     }
   };
-
   const handleCopyText = async () => {
     if (asset.ocr_snippet) {
       try {

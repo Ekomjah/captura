@@ -24,7 +24,7 @@ export function HistoryPage() {
       <div className="flex justify-between items-center w-full px-7 py-4">
         <div className="px-7 py-4">
           <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-          <p className="text-bl1ue-500 font-light text-4xl">History</p>
+          <p className="text-blue-500 font-light text-4xl">History</p>
         </div>
 
         <Button onClick={() => setUploadModalOpen(true)}>

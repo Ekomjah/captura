@@ -7,7 +7,7 @@ export function getDisplayName(asset: AssetSummary): string {
 
 export function getPreviewUrl(asset: AssetSummary): string {
   if (asset.thumbnail_url) {
-    return `https://captura-mvp-76d74875.s3.us-east-1.amazonaws.com/${asset.thumbnail_url.replace("raw", "processed").replace(/\.[^.]+$/, ".webp")}`;
+    return `https://captura-mvp-76d74875.s3.us-east-1.amazonaws.com/${asset.thumbnail_url}`;
   }
 
   const webpVariant = asset.variants.find((v) => v.format === "webp");

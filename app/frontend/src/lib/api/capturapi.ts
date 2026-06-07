@@ -46,8 +46,13 @@ export const searchAssets = async (
   return res.data;
 };
 
+export const deleteAsset = async (assetId: string): Promise<void> => {
+  await api.delete(`/delete/${assetId}`);
+};
+
 export const capturapi = {
   fetchAssets,
   uploadAsset,
   searchAssets,
+  deleteAsset,
 };

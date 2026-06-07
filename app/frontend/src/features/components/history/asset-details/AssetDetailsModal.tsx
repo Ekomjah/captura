@@ -14,10 +14,10 @@ export function AssetDetailsModal({ asset }: AssetDetailsModalProps) {
   return (
     <div className="flex flex-col lg:flex-row items-center justify-center h-full">
       <AssetPreviewPane asset={asset} />
-      <div className="w-full lg:w-1/4 bg-[#19191d] flex flex-col">
+      <div className="w-full lg:w-1/4 bg-card flex flex-col">
         <AssetSidebarPane asset={asset}>
           <VariantsSection variants={asset.variants} />
-          <Separator className="bg-white/5" />
+          <Separator />
           <OCRTextSection
             ocr_snippet={asset.ocr_snippet}
             ocr_status={asset.ocr_status}

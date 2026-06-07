@@ -20,7 +20,7 @@ export function AssetPreviewPane({ asset }: AssetPreviewPaneProps) {
   const resolution = getResolution(asset);
 
   return (
-    <div className="relative w-full lg:w-3/4 bg-[#131316] h-full flex items-center justify-center rounded-lg">
+    <div className="relative w-full lg:w-3/4 bg-muted h-full flex items-center justify-center rounded-lg">
       <div className="absolute inset-0 flex items-center justify-center p-8">
         <ImageWithFallback
           src={previewUrl}

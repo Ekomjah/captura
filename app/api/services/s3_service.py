@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass
 from typing import Literal
@@ -6,6 +7,8 @@ from uuid import uuid4
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from schema.upload import UploadVariant, VariantFormat
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -144,3 +147,47 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
         "Something went wrong. Please try again later or confirm your network.",
         500,
     )
+
+
+def _delete_objects_under_prefix(
+    client, bucket_name: str, prefix: str
+) -> int:
+    """Delete all objects under *prefix* in *bucket_name*. Returns count deleted."""
+    paginator = client.get_paginator("list_objects_v2")
+    deleted = 0
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        contents = page.get("Contents", [])
+        if not contents:
+            continue
+        objects = [{"Key": obj["Key"]} for obj in contents]
+        client.delete_objects(
+            Bucket=bucket_name,
+            Delete={"Objects": objects},
+        )
+        deleted += len(objects)
+    return deleted
+
+
+def delete_asset_from_s3(asset_id: str) -> None:
+    """Delete all S3 objects for *asset_id* from the raw and processed prefixes."""
+    config = load_s3_config()
+    client = _s3_client(config)
+
+    for prefix in ("raw", "processed"):
+        key_prefix = f"uploads/{prefix}/{asset_id}/"
+        try:
+            count = _delete_objects_under_prefix(client, config.bucket_name, key_prefix)
+            if count:
+                logger.info(
+                    "deleted %d object(s) under s3://%s/%s",
+                    count,
+                    config.bucket_name,
+                    key_prefix,
+                )
+        except (ClientError, BotoCoreError):
+            logger.exception(
+                "failed to delete objects under s3://%s/%s",
+                config.bucket_name,
+                key_prefix,
+            )
+            raise

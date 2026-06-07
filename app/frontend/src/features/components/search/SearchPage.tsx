@@ -33,14 +33,14 @@ export function SearchPage() {
     <div className="mb-10">
       <div className="px-7 py-4 space-y-2">
         <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-        <div className="text-blue-500 font-light text-4xl">Search</div>
+        <div className="text-primary font-light text-4xl">Search</div>
       </div>
 
       {!query ? (
         <div className="flex items-center justify-center min-h-100 w-full">
           <div className="text-center">
             <h2 className="text-4xl font-semibold mb-3">No Search Query</h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-muted-foreground">
               Please enter a search query to see results
             </p>
           </div>
@@ -70,7 +70,7 @@ export function SearchPage() {
           {!isPending && data?.items && data.items.length > 0 && (
             <>
               <div className="mb-6">
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Found {data.total} result{data.total !== 1 ? "s" : ""} for "
                   {query}"
                 </p>
@@ -89,7 +89,7 @@ export function SearchPage() {
                 <h2 className="text-4xl font-semibold mb-3">
                   No Results Found
                 </h2>
-                <p className="text-lg text-gray-600">
+                <p className="text-lg text-muted-foreground">
                   No results found for "{query}"
                 </p>
               </div>

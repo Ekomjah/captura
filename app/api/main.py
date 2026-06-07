@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from models.map_db_exception import _map_db_exception
+from repo.delete_asset import delete_asset_from_db
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
@@ -22,7 +24,12 @@ from seed.seed import cleanup_seeds
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
-from services.s3_service import map_s3_exception, upload_raw_file, upload_variant_file
+from services.s3_service import (
+    delete_asset_from_s3,
+    map_s3_exception,
+    upload_raw_file,
+    upload_variant_file,
+)
 from sqlalchemy.orm import Session
 
 app = FastAPI(title="Captura API", version="0.1.0")
@@ -197,10 +204,11 @@ async def get_history(
     try:
         return await get_all_assets(db, page, page_size)
     except Exception as e:
+        error, detail, status_code = _map_db_exception(e, action="history query")
         raise UploadException(
-            error="DatabaseError",
-            detail="Failed to retrieve assets from the database",
-            status_code=500,
+            error=error,
+            detail=detail,
+            status_code=status_code,
         ) from e
 
 
@@ -211,4 +219,46 @@ async def search_endpoint(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     db: Session = Depends(get_db),
 ):
-    return await search_assets(db, q, page, page_size)
+    try:
+        return await search_assets(db, q, page, page_size)
+    except Exception as e:
+        error, detail, status_code = _map_db_exception(e, action="search query")
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        ) from e
+
+
+@app.delete("/v1/delete/{asset_id}", status_code=204, tags=["assets"])
+async def delete_asset(
+    asset_id: str,
+    db: Session = Depends(get_db),
+):
+    # Delete from S3 first — if this fails the DB stays untouched and the
+    # user can retry. Only proceed to DB deletion after S3 succeeds.
+    try:
+        delete_asset_from_s3(asset_id)
+    except Exception as e:
+        error, detail, status_code = map_s3_exception(e)
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        ) from e
+
+    try:
+        delete_asset_from_db(asset_id, db)
+    except ValueError:
+        raise UploadException(
+            error="NotFound",
+            detail=f"Asset with id {asset_id} not found",
+            status_code=404,
+        )
+    except Exception as e:
+        error, detail, status_code = _map_db_exception(e, action="asset deletion")
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        ) from e

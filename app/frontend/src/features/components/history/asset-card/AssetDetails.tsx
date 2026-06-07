@@ -28,7 +28,7 @@ export function AssetDetails({
           className="w-full max-w-70 rounded-lg object-fit"
         />
       </a>
-      <div className="w-full space-y-4 border-l border-gray-700 pl-4">
+      <div className="w-full space-y-4 border-l border-border pl-4">
         <FieldGroup>
           <Field>
             <Label htmlFor={id}>Asset Name</Label>

@@ -53,11 +53,11 @@ export function ActionFooter({ asset }: ActionFooterProps) {
   const canCopy = asset.ocr_status === "done" && asset.ocr_snippet;
 
   return (
-    <div className="border-t border-white/5 px-6 py-4 flex gap-3">
+    <div className="border-t border-border px-6 py-4 flex gap-3">
       <Button
         onClick={handleDownloadWebP}
         disabled={!hasWebP}
-        className="flex-1 bg-gradient-to-r from-[#699cff] to-[#5a8ae6] hover:from-[#5a8ae6] hover:to-[#4b7ad7]"
+        className="flex-1"
       >
         <Download className="size-4 mr-2" />
         Download
@@ -66,7 +66,7 @@ export function ActionFooter({ asset }: ActionFooterProps) {
         onClick={handleCopyText}
         disabled={!canCopy || isCopying}
         variant="outline"
-        className="flex-1 border-white/10 hover:bg-white/5"
+        className="flex-1"
       >
         <Copy className="size-4 mr-2" />
         {isCopying ? "Copied!" : "Copy Text"}

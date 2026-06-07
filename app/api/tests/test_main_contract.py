@@ -175,7 +175,8 @@ def test_openapi_lists_mvp_paths_and_tags():
     assert "/v1/search" in paths
     assert paths["/v1/upload"]["post"]["tags"] == ["assets"]
     assert paths["/v1/history"]["get"]["tags"] == ["assets"]
-    assert paths["/v1/search"]["get"]["tags"] == ["search"]
+    assert "/v1/delete/{asset_id}" in paths
+    assert paths["/v1/delete/{asset_id}"]["delete"]["tags"] == ["assets"]
 
 
 def test_post_upload_stores_ocr_text_in_db(
@@ -426,3 +427,78 @@ def test_get_search_returns_persisted_variant_size_bytes(
         hit["asset"]["variants"][0]["s3_key"]
         == "uploads/processed/search-test-1/screenshot.webp"
     )
+
+
+# ===== Delete endpoint tests =====
+
+
+def test_delete_asset_removes_from_db(
+    client_with_db: TestClient,
+    test_session: Session,
+    monkeypatch,
+):
+    """Deleting an existing asset returns 204 and removes the asset + variants."""
+    monkeypatch.setattr(main, "delete_asset_from_s3", lambda asset_id: None)
+
+    _seed_asset(test_session, asset_id="delete-me-1")
+    _seed_webp_variant(test_session, asset_id="delete-me-1")
+
+    response = client_with_db.delete("/v1/delete/delete-me-1")
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+    # Asset row must be gone.
+    assert test_session.get(Asset, "delete-me-1") is None
+
+    # All variant rows must be gone too (explicit deletion).
+    remaining_variants = (
+        test_session.query(AssetVariant)
+        .filter(AssetVariant.asset_id == "delete-me-1")
+        .all()
+    )
+    assert len(remaining_variants) == 0
+
+
+def test_delete_asset_not_found_returns_404(
+    client_with_db: TestClient,
+    monkeypatch,
+):
+    """Deleting a non-existent asset returns 404."""
+    monkeypatch.setattr(main, "delete_asset_from_s3", lambda asset_id: None)
+
+    response = client_with_db.delete("/v1/delete/nonexistent-id")
+
+    assert response.status_code == 404
+    data = response.json()
+    assert data["error"] == "NotFound"
+    assert "nonexistent-id" in data["detail"]
+
+
+def test_delete_asset_s3_failure_returns_500_and_preserves_db_row(
+    client_with_db: TestClient,
+    test_session: Session,
+    monkeypatch,
+):
+    """When S3 deletion fails the asset stays in DB (S3-first safety)."""
+    from botocore.exceptions import ClientError
+
+    def fake_s3_delete(asset_id: str):
+        raise ClientError(
+            {"Error": {"Code": "AccessDenied", "Message": "Access Denied"}},
+            "DeleteObject",
+        )
+
+    monkeypatch.setattr(main, "delete_asset_from_s3", fake_s3_delete)
+
+    _seed_asset(test_session, asset_id="keep-me")
+    _seed_webp_variant(test_session, asset_id="keep-me")
+
+    response = client_with_db.delete("/v1/delete/keep-me")
+
+    assert response.status_code == 500
+    data = response.json()
+    assert data["error"] == "S3AccessDenied"
+
+    # Asset must still exist — S3 failure means we bail before DB deletion.
+    assert test_session.get(Asset, "keep-me") is not None

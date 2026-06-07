@@ -23,7 +23,7 @@ export function AppSidebar() {
   const { focusSearch } = useSearch();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   return (
     <Sidebar>
       <SidebarHeader className="flex-col items-left justify-center border-b px-7 m-0 pt-8">
@@ -67,17 +67,29 @@ export function AppSidebar() {
       <SidebarFooter className="border-t pt-4">
         <SidebarMenu className="flex-row border rounded-lg gap-2 w-full justify-evenly">
           <SidebarMenuItem className="p-0">
-            <SidebarMenuButton onClick={() => setTheme("light")}>
+            <SidebarMenuButton
+              onClick={() => setTheme("light")}
+              isActive={theme === "light"}
+              tooltip="Light theme"
+            >
               <Sun />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem className="p-0">
-            <SidebarMenuButton onClick={() => setTheme("system")}>
+            <SidebarMenuButton
+              onClick={() => setTheme("system")}
+              isActive={theme === "system"}
+              tooltip="System theme"
+            >
               <MonitorCog />
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem className="p-0">
-            <SidebarMenuButton onClick={() => setTheme("dark")}>
+            <SidebarMenuButton
+              onClick={() => setTheme("dark")}
+              isActive={theme === "dark"}
+              tooltip="Dark theme"
+            >
               <Moon />
             </SidebarMenuButton>
           </SidebarMenuItem>

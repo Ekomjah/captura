@@ -10,7 +10,7 @@ export function VariantsSection({ variants }: VariantsSectionProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xs uppercase tracking-wide text-gray-500">
+      <h3 className="text-xs uppercase tracking-wide text-muted-foreground">
         Variants
       </h3>
       {validVariants.length > 0 ? (
@@ -24,7 +24,7 @@ export function VariantsSection({ variants }: VariantsSectionProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400">No optimized variants available</p>
+        <p className="text-sm text-muted-foreground">No optimized variants available</p>
       )}
     </div>
   );

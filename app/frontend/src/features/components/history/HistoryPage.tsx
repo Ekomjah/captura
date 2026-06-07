@@ -30,7 +30,9 @@ export function HistoryPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => {
-        toast.success(`Asset "${getDisplayName(deleteTarget)}" deleted successfully`);
+        toast.success(
+          `Asset "${getDisplayName(deleteTarget)}" deleted successfully`,
+        );
         setDeleteTarget(null);
       },
       onError: () => {
@@ -41,17 +43,19 @@ export function HistoryPage() {
 
   return (
     <div className="mb-10">
-      <div className="flex justify-between items-center w-full px-7 py-4">
-        <div className="px-7 py-4">
-          <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-          <p className="text-primary font-light text-4xl">History</p>
-        </div>
+      {!isError && (
+        <div className="flex justify-between items-center w-full px-7 py-4">
+          <div className="px-7 py-4">
+            <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
+            <p className="text-primary font-light text-4xl">History</p>
+          </div>
 
-        <Button onClick={() => setUploadModalOpen(true)}>
-          <Images className="mr-2" />
-          Upload Image
-        </Button>
-      </div>
+          <Button onClick={() => setUploadModalOpen(true)}>
+            <Images className="mr-2" />
+            Upload Image
+          </Button>
+        </div>
+      )}
 
       <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
 

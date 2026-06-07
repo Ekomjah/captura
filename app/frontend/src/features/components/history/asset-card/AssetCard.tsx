@@ -13,13 +13,16 @@ import { getDisplayName } from "@/lib/utils/assetHelpers";
 import { formatAssetDate } from "@/lib/utils/dateFormatter";
 import { shortenText } from "@/lib/utils/textShortener";
 import { forwardRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface AssetCardProps extends React.HTMLAttributes<HTMLDivElement> {
   asset: AssetSummary;
+  onDelete?: (asset: AssetSummary) => void;
 }
 
 export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
-  ({ asset, ...props }, ref) => {
+  ({ asset, onDelete, ...props }, ref) => {
     const displayName = getDisplayName(asset);
     const formattedDate = asset.created_at
       ? formatAssetDate(asset.created_at)
@@ -33,6 +36,20 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         {...props}
         className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 focus:ring-2 focus:ring-primary/50 outline-none"
       >
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive/10 hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(asset);
+            }}
+            aria-label={`Delete ${displayName}`}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        )}
         <AssetCardThumbnail asset={asset} />
         <CardHeader>
           <CardAction>

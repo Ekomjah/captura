@@ -52,9 +52,4 @@ jobs:
     environment: staging
     steps:
       - name: Trigger Render deploy
-        run: |
-          curl -sf -X POST \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
-            -d '{"clearCache": false}'
+        run: curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}"

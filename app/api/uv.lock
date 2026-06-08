@@ -59,6 +59,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "pillow" },
     { name = "psycopg2-binary" },
+    { name = "pydantic-settings" },
     { name = "pytesseract" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
@@ -80,6 +81,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.136.0" },
     { name = "pillow", specifier = ">=12.2.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
+    { name = "pydantic-settings", specifier = ">=2.14.1" },
     { name = "pytesseract", specifier = ">=0.3.13" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "python-multipart", specifier = ">=0.0.26" },
@@ -703,6 +705,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0e/01/b9039da255c5fd3a7fd85344fda8861c847ad6d8fdd115580fa4505b2022/pydantic_core-2.46.1-pp311-pypy311_pp73-musllinux_1_1_armv7l.whl", hash = "sha256:d2623606145b55a96efdd181b015c0356804116b2f14d3c2af4832fe4f45ed5f", size = 2323011, upload-time = "2026-04-15T14:49:40.32Z" },
     { url = "https://files.pythonhosted.org/packages/24/b1/f426b20cb72d0235718ccc4de3bc6d6c0d0c2a91a3fd2f32ae11b624bcc9/pydantic_core-2.46.1-pp311-pypy311_pp73-musllinux_1_1_x86_64.whl", hash = "sha256:420f515c42aaec607ff720867b300235bd393abd709b26b190ceacb57a9bfc17", size = 2365696, upload-time = "2026-04-15T14:49:41.936Z" },
     { url = "https://files.pythonhosted.org/packages/ef/d2/d2b0025246481aa2ce6db8ba196e29b92063343ac76e675b3a1fa478ed4d/pydantic_core-2.46.1-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:375cfdd2a1049910c82ba2ff24f948e93599a529e0fdb066d747975ca31fc663", size = 2190970, upload-time = "2026-04-15T14:49:33.111Z" },
+]
+
+[[package]]
+name = "pydantic-settings"
+version = "2.14.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/07/60/1d1e59c9c90d54591469ada7d268251f71c24bdb765f1a8a832cee8c6653/pydantic_settings-2.14.1.tar.gz", hash = "sha256:e874d3bec7e787b0c9958277956ed9b4dd5de6a80e162188fdaff7c5e26fd5fa", size = 235551, upload-time = "2026-05-08T13:40:06.542Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ae/8d/f1af3832f5e6eb13ba94ee809e72b8ecb5eef226d27ee0bef7d963d943c7/pydantic_settings-2.14.1-py3-none-any.whl", hash = "sha256:6e3c7edfd8277687cdc598f56e5cff0e9bfff0910a3749deaa8d4401c3a2b9de", size = 60964, upload-time = "2026-05-08T13:40:04.958Z" },
 ]
 
 [[package]]

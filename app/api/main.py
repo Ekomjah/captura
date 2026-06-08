@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Annotated
 
+from core.config import get_settings
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,7 +33,13 @@ from services.s3_service import (
 )
 from sqlalchemy.orm import Session
 
-app = FastAPI(title="Captura API", version="0.1.0")
+settings = get_settings()
+
+app = FastAPI(
+    title="Captura API",
+    docs_url="/docs" if settings.environment != "production" else None,
+    version="0.1.0",
+)
 load_dotenv()
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -45,17 +52,10 @@ for logger_name in ["repo", "services", "models", "schema"]:
     logging.getLogger(logger_name).setLevel(logging.DEBUG)
 
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:3000",
-    "https://captura-frontend-kappa.vercel.app",
-    "https://captura-frontend**",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o for o in origins if o],
+    allow_origins=settings.allowed_origins,
+    allow_origin_regex=settings.allowed_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

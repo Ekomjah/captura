@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [staging, main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Install dependencies
+        run: uv sync --frozen
+        working-directory: app/api
+      - name: Run tests
+        run: uv run pytest -v
+        working-directory: app/api
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm tsc -p tsconfig.app.json --noEmit
+        working-directory: app/frontend
+      - name: Build
+        run: pnpm build
+        working-directory: app/frontend

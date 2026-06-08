@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/captura-api
+  IMAGE_NAME: ${{ github.repository }}/captura-api
 
 jobs:
   build-and-push:

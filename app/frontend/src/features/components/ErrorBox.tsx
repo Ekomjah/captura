@@ -16,7 +16,7 @@ export default function ErrorBox({ message, queryKey }: ErrorBoxProps) {
       role="alert"
     >
       <p className="font-roboto-mono font-bold">Error loading assets</p>
-      <p className="text-sm text-muted-foreground mb-2" aria-live="polite">
+      <p className="ttext-muted-foreground mb-2" aria-live="polite">
         {message}
       </p>
       <Button

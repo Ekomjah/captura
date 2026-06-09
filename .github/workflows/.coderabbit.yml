@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit configuration for the Captura monorepo.
+# NOTE: CodeRabbit auto-discovers this file at the repo root or in `.github/`,
+# not in `.github/workflows/`. Move it up one level (or to the repo root) for it
+# to take effect.
+
+language: "en-US"
+
+reviews:
+  # Stricter, more opinionated reviews: catches potential breaks, logic errors,
+  # syntax/linting issues, spelling, and code-quality concerns.
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_instructions:
+    - path: "app/frontend/src/**"
+      instructions: >-
+        Enforce strict TypeScript: no `any`, no non-null assertions without
+        justification, and exhaustive handling of union types. Flag unused
+        imports/variables, missing return types on exported functions, and React
+        hook dependency issues. Check for ESLint rule violations, possible
+        runtime errors (null/undefined access), and spelling mistakes in
+        user-facing strings and identifiers.
+    - path: "app/api/**"
+      instructions: >-
+        Validate API contracts and Pydantic/FastAPI schema correctness. Ensure
+        request/response models match endpoint behavior, check for breaking
+        changes to public endpoints, and verify proper error handling. Flag
+        ruff/lint violations, type-annotation gaps, possible exceptions, and
+        spelling errors.
+    - path: "app/api/alembic/**"
+      instructions: >-
+        Review database migrations carefully for reversibility, data loss, and
+        backward compatibility. Ensure downgrade paths are correct.
+    - path: "**/*.test.*"
+      instructions: >-
+        Verify adequate test coverage, meaningful assertions, and that edge
+        cases and error paths are exercised.
+    - path: "app/api/tests/**"
+      instructions: >-
+        Ensure adequate pytest coverage with clear assertions and that edge
+        cases and failure modes are tested.
+    - path: "**/*.md"
+      instructions: "Check for grammar, clarity, and spelling."
+
+  auto_review_labels: []
+
+  tools:
+    # Frontend linting
+    eslint:
+      enabled: true
+    # Python linting
+    ruff:
+      enabled: true
+    # Spelling
+    languagetool:
+      enabled: true
+    # YAML / GitHub Actions / shell hygiene
+    yamllint:
+      enabled: true
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    # Markdown
+    markdownlint:
+      enabled: true
+
+chat:
+  auto_reply: true
+  art: false

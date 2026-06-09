@@ -50,7 +50,10 @@ export function HistoryPage() {
             <p className="text-primary font-light text-4xl">History</p>
           </div>
 
-          <Button onClick={() => setUploadModalOpen(true)}>
+          <Button
+            className="rounded-none w-full"
+            onClick={() => setUploadModalOpen(true)}
+          >
             <Images className="mr-2" />
             Upload Image
           </Button>

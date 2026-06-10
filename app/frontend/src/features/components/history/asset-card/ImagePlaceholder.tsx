@@ -7,8 +7,8 @@ interface ImagePlaceholderProps {
 
 export function ImagePlaceholder({ format }: ImagePlaceholderProps) {
   return (
-    <div className="aspect-video w-full bg-gradient-to-br from-muted to-card flex items-center justify-center relative">
-      <FileImage className="size-16 text-muted-foreground/40" />
+    <div className="aspect-video w-full bg-surface-raised dot-grid flex items-center justify-center relative">
+      <FileImage className="size-16 text-text-disabled" />
       {format && (
         <Badge variant="secondary" className="absolute bottom-2 right-2">
           {format.toUpperCase()}

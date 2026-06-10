@@ -46,12 +46,16 @@ export function HistoryPage() {
       {!isError && (
         <div className="flex justify-between items-center w-full px-7 py-4">
           <div className="px-7 py-4">
-            <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-            <p className="text-primary font-light text-4xl">History</p>
+            <h1 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary">
+              Asset Management
+            </h1>
+            <p className="mt-1 font-display text-4xl leading-none text-text-display">
+              History
+            </p>
           </div>
 
           <Button
-            className="rounded-none w-full"
+            className="w-full"
             onClick={() => setUploadModalOpen(true)}
           >
             <Images className="mr-2" />

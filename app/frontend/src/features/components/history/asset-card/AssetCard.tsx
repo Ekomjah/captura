@@ -34,13 +34,13 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         role="button"
         tabIndex={0}
         {...props}
-        className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 focus:ring-2 focus:ring-primary/50 outline-none"
+        className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer transition-colors hover:border-border-visible focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 outline-none"
       >
         {onDelete && (
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive/10 hover:text-destructive"
+            className="absolute top-2 right-2 z-10 bg-card/80 hover:bg-destructive/10 hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(asset);
@@ -64,7 +64,7 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         </CardHeader>
         {asset.ocr_snippet && (
           <CardContent className="mt-auto">
-            <p className="bg-secondary/30 text-muted-foreground px-3 py-2.5 text-sm font-medium italic leading-relaxed border-l-3 border-primary/30 rounded">
+            <p className="bg-surface-raised/40 text-muted-foreground px-3 py-2.5 text-xs font-mono leading-relaxed border-l-2 border-signal/40 rounded">
               {shortenText(asset.ocr_snippet, 60)}
             </p>
           </CardContent>

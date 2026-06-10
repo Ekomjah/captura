@@ -12,15 +12,16 @@ export default function ErrorBox({ message, queryKey }: ErrorBoxProps) {
 
   return (
     <div
-      className="w-full flex flex-col min-h-100 text-center text-destructive justify-center items-center mx-auto"
+      className="w-full flex flex-col min-h-100 text-center justify-center items-center mx-auto rounded-xl border border-destructive/40 bg-destructive/5"
       role="alert"
     >
-      <p className="font-roboto-mono font-bold">Error loading assets</p>
-      <p className="text-muted-foreground mb-2" aria-live="polite">
+      <p className="font-roboto-mono text-sm uppercase tracking-widest text-destructive">
+        [ Error ] Loading assets
+      </p>
+      <p className="text-muted-foreground mb-4 mt-1" aria-live="polite">
         {message}
       </p>
       <Button
-        className="px-3 py-1 h-9 flex place-items-center mx-auto rounded text-sm"
         variant="destructive"
         onClick={() => queryClient.invalidateQueries({ queryKey })}
       >

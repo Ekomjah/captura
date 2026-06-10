@@ -57,7 +57,7 @@ export function HighlightedText({ text, query, className }: HighlightedTextProps
           <mark
             key={i}
             className={cn(
-              "rounded bg-primary/20 px-0.5 font-semibold text-foreground not-italic",
+              "rounded bg-signal/25 px-0.5 font-semibold text-foreground not-italic",
             )}
           >
             {segment.value}

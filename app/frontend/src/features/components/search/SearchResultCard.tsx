@@ -32,10 +32,10 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
       <Card
         role="button"
         tabIndex={0}
-        className="flex w-full cursor-pointer flex-row items-stretch gap-4 rounded-2xl p-3 outline-none transition-all hover:ring-2 hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-primary/50"
+        className="flex w-full cursor-pointer flex-row items-stretch gap-4 rounded-xl p-3 outline-none transition-colors hover:border-border-visible focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
       >
         {/* Thumbnail */}
-        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted sm:size-28">
+        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-raised sm:size-28">
           {previewUrl && !imgError ? (
             <img
               src={previewUrl}
@@ -63,7 +63,7 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
           </div>
 
           {/* Matched OCR context with the search term highlighted */}
-          <p className="line-clamp-2 rounded border-l-3 border-primary/30 bg-secondary/30 px-3 py-2 text-sm italic leading-relaxed text-muted-foreground">
+          <p className="line-clamp-2 rounded border-l-2 border-signal/40 bg-surface-raised/40 px-3 py-2 font-mono text-xs leading-relaxed text-muted-foreground">
             <HighlightedText text={context} query={matched_text} />
           </p>
 
@@ -73,7 +73,7 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
             {totalSizeMb > 0 && (
               <>
                 <span aria-hidden>•</span>
-                <span>{totalSizeMb.toFixed(2)} MB</span>
+                <span className="font-mono">{totalSizeMb.toFixed(2)} MB</span>
               </>
             )}
           </div>

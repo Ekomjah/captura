@@ -32,15 +32,21 @@ export function SearchPage() {
   return (
     <div className="mb-10">
       <div className="px-7 py-4 space-y-2">
-        <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-        <div className="text-primary font-light text-4xl">Search</div>
+        <h1 className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary">
+          Asset Management
+        </h1>
+        <div className="font-display text-4xl leading-none text-text-display">
+          Search
+        </div>
       </div>
 
       {!query ? (
         <div className="flex items-center justify-center min-h-100 w-full">
           <div className="text-center">
-            <h2 className="text-4xl font-semibold mb-3">No Search Query</h2>
-            <p className="text-lg text-muted-foreground">
+            <h2 className="text-2xl font-medium text-text-secondary mb-3">
+              No Search Query
+            </h2>
+            <p className="font-mono text-xs uppercase tracking-[0.08em] text-text-disabled">
               Please enter a search query to see results
             </p>
           </div>
@@ -61,7 +67,7 @@ export function SearchPage() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-28 bg-muted rounded-2xl animate-pulse"
+                  className="h-28 bg-surface-raised border border-border rounded-lg animate-pulse"
                 />
               ))}
             </div>
@@ -70,7 +76,7 @@ export function SearchPage() {
           {!isPending && data?.items && data.items.length > 0 && (
             <>
               <div className="mb-6">
-                <p className="text-muted-foreground">
+                <p className="font-mono text-xs uppercase tracking-[0.08em] text-text-secondary">
                   Found {data.total} result{data.total !== 1 ? "s" : ""} for "
                   {query}"
                 </p>
@@ -86,10 +92,10 @@ export function SearchPage() {
           {!isPending && !isError && data?.items.length === 0 && (
             <div className="flex items-center justify-center min-h-100 w-full">
               <div className="text-center">
-                <h2 className="text-4xl font-semibold mb-3">
+                <h2 className="text-2xl font-medium text-text-secondary mb-3">
                   No Results Found
                 </h2>
-                <p className="text-lg text-muted-foreground">
+                <p className="font-mono text-xs uppercase tracking-[0.08em] text-text-disabled">
                   No results found for "{query}"
                 </p>
               </div>

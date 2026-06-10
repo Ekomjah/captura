@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { UploadModal } from "@/features/upload";
-import { Images } from "lucide-react";
+import { Images,Plus } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { AssetCard } from "@/features/components/history/asset-card/AssetCard";
 import { AssetCardSkeleton } from "@/features/components/history/asset-card/AssetCardSkeleton";
@@ -64,7 +64,7 @@ export function HistoryPage() {
             onClick={() => setUploadModalOpen(true)}
             className="shrink-0"
           >
-            <Images className="mr-2" />
+            <Plus className="mr-2" />
             Upload Image
           </Button>
         </div>

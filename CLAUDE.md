@@ -2,6 +2,8 @@
 
 Captura turns a raw screenshot upload into a searchable, multi-format cloud asset. Upload an image → the original is stored in S3, an optimized WebP variant is generated in memory, text is extracted via OCR, and everything becomes searchable and downloadable through signed URLs.
 
+- Always check available plugins and use whichever are relevant to the current task.
+
 ## Repo Layout
 
 pnpm + uv monorepo. Two apps under `app/`, infra under `infra/`.

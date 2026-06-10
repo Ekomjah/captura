@@ -15,13 +15,13 @@ export function NavMenu() {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Bell />
+          <Bell className="size-5 text-muted-foreground transition-colors hover:text-foreground" />
         </NavigationMenuItem>
         <NavigationMenuItem>
           <img
             src="https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=Aiden"
             alt="avatar"
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-full border border-border"
           />
         </NavigationMenuItem>
       </NavigationMenuList>

@@ -26,11 +26,13 @@ export function AppSidebar() {
   const { theme, setTheme } = useTheme();
   return (
     <Sidebar>
-      <SidebarHeader className="flex-col items-left justify-center border-b px-7 m-0 pt-8">
-        <h1 className="text-2xl font-extrabold tracking-tight m-0 p-0">
+      <SidebarHeader className="flex-col items-left justify-center border-b px-7 m-0 pt-8 pb-6">
+        <h1 className="font-display text-4xl leading-none tracking-tight m-0 p-0 text-text-display">
           Captura
         </h1>
-        <p className="font-medium p-0">Technical Precision</p>
+        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-text-secondary p-0">
+          Technical Precision
+        </p>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="flex gap-2 pl-4 pr-2 py-4 w-full">
@@ -38,7 +40,9 @@ export function AppSidebar() {
             <SidebarMenuButton asChild isActive={isActive("/")}>
               <Link to="/">
                 <History />
-                <div>History</div>
+                <div className="font-mono text-xs uppercase tracking-[0.08em]">
+                  History
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -50,7 +54,9 @@ export function AppSidebar() {
             >
               <Link to="/search">
                 <FileSearchCorner />
-                <div>Search</div>
+                <div className="font-mono text-xs uppercase tracking-[0.08em]">
+                  Search
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -58,7 +64,9 @@ export function AppSidebar() {
             <SidebarMenuButton asChild isActive={isActive("/settings")}>
               <Link to="/settings">
                 <Settings />
-                <div>Settings</div>
+                <div className="font-mono text-xs uppercase tracking-[0.08em]">
+                  Settings
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -39,6 +39,7 @@ export function MenuSearchBar() {
     <InputGroup className="max-w-xs">
       <InputGroupInput
         placeholder="Search..."
+        className="font-mono text-sm"
         ref={inputRef}
         onClick={handleClick}
         onKeyDown={handleKeyDown}

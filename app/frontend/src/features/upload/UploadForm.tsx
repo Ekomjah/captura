@@ -89,7 +89,14 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
       {isSuccess && data && (
         <div className="space-y-4 mb-4">
           <UploadSuccessSummary response={data} />
-          <Button type="button" variant="outline" onClick={handleReset}>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={handleReset}
+            className="w-full"
+          >
+            <RotateCcw className="size-4" />
             Upload another
           </Button>
         </div>

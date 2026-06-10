@@ -32,9 +32,14 @@ export function UploadModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-lg">
+      <DialogContent className="w-lg sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Upload Image</DialogTitle>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Develop a capture
+          </p>
+          <DialogTitle className="font-heading text-xl tracking-tight">
+            Upload Image
+          </DialogTitle>
           <DialogDescription>
             Upload a single image. Supported formats: JPEG, PNG, WebP.
           </DialogDescription>

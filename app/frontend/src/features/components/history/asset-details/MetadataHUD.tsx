@@ -8,12 +8,14 @@ interface MetadataHUDProps {
 
 export function MetadataHUD({ resolution, fileSize, fileType }: MetadataHUDProps) {
   return (
-    <div className="absolute bottom-4 left-4 flex items-center gap-3 px-4 py-3 bg-background/70 backdrop-blur-md border border-border rounded-lg">
-      <span className="text-sm text-muted-foreground">{resolution}</span>
-      <Separator orientation="vertical" className="h-4" />
-      <span className="text-sm text-muted-foreground">{fileSize}</span>
-      <Separator orientation="vertical" className="h-4" />
-      <span className="text-sm text-muted-foreground">{fileType}</span>
+    <div className="absolute bottom-4 left-4 flex items-center gap-3 rounded-lg border border-white/10 bg-black/45 px-4 py-2.5 backdrop-blur-md">
+      <span className="font-data text-xs text-white/85">{resolution}</span>
+      <Separator orientation="vertical" className="h-3.5 bg-white/20" />
+      <span className="font-data text-xs text-white/85">{fileSize}</span>
+      <Separator orientation="vertical" className="h-3.5 bg-white/20" />
+      <span className="font-data text-xs uppercase text-white/85">
+        {fileType}
+      </span>
     </div>
   );
 }

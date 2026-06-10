@@ -17,17 +17,17 @@ export function UploadFilePreview({
           <img
             src={previewUrl}
             alt="Preview"
-            className="w-24 h-24 object-cover rounded-md"
+            className="w-24 h-24 object-cover rounded-md border border-border"
           />
         </div>
         <div className="grow flex flex-col justify-center gap-1">
           <p className="font-semibold text-sm truncate">
             {shortenText(selectedFile.name, 30)}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="font-mono text-xs text-text-secondary">
             {formatFileSize(selectedFile.size)}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="font-mono text-xs text-text-secondary">
             {selectedFile.type || "Unknown type"}
           </p>
         </div>

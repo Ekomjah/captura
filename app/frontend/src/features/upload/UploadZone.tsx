@@ -47,26 +47,24 @@ export function UploadZone({
     <div
       {...getRootProps()}
       className={cn(
-        "w-full p-8 border-2 border-dashed rounded-md flex flex-col items-center justify-center transition-colors",
+        "w-full p-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors",
         disabled
-          ? "cursor-not-allowed opacity-60 border-muted-foreground/20 bg-muted/10"
+          ? "cursor-not-allowed opacity-60 border-border bg-surface-raised/10"
           : "cursor-pointer",
-        !disabled && isDragActive && "border-primary bg-primary/5",
-        !disabled &&
-          !isDragActive &&
-          "border-muted-foreground/30 bg-muted/20",
+        !disabled && isDragActive && "border-signal bg-signal/5",
+        !disabled && !isDragActive && "border-input bg-surface-raised/30",
       )}
     >
       <Input {...getInputProps()} />
-      <div className="bg-linear-to-b from-muted-foreground/40 to-muted-foreground/20 dark:from-muted-foreground/50 dark:to-muted-foreground/30 p-8 rounded-full mb-4">
-        <CloudUpload size={64} color="currentColor" />
+      <div className="bg-surface-raised p-8 rounded-full mb-4">
+        <CloudUpload size={64} className="text-text-secondary" />
       </div>
       {isDragActive ? (
         <p className="font-medium text-muted-foreground">Drop the image here</p>
       ) : (
         <div className="font-medium text-muted-foreground flex flex-col items-center justify-center gap-2 text-center">
           <p>Drag an image here, or click to select a file</p>
-          <span className="text-sm text-muted-foreground/80">
+          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-disabled">
             One image per upload
           </span>
         </div>

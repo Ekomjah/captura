@@ -44,15 +44,25 @@ export function HistoryPage() {
   return (
     <div className="mb-10">
       {!isError && (
-        <div className="flex justify-between items-center w-full px-7 py-4">
-          <div className="px-7 py-4">
-            <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-            <p className="text-primary font-light text-4xl">History</p>
+        <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-10">
+          <div className="space-y-2">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+              Asset Management
+            </p>
+            <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
+              History
+            </h1>
+            {!isPending && data?.total != null && data.total > 0 && (
+              <p className="font-data text-sm text-muted-foreground">
+                {data.total} capture{data.total !== 1 ? "s" : ""} archived
+              </p>
+            )}
           </div>
 
           <Button
-            className="rounded-none w-full"
+            size="lg"
             onClick={() => setUploadModalOpen(true)}
+            className="shrink-0"
           >
             <Images className="mr-2" />
             Upload Image
@@ -62,7 +72,7 @@ export function HistoryPage() {
 
       <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
 
-      <div className="mb-10 p-8 w-full">
+      <div className="mb-10 px-6 py-8 sm:px-10">
         {isError && (
           <div className="mb-4">
             <ErrorBox
@@ -73,19 +83,25 @@ export function HistoryPage() {
         )}
 
         {isPending && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
               <AssetCardSkeleton key={i} />
             ))}
           </div>
         )}
 
         {!isPending && data?.images && data.images.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {data.images.map((asset) => (
-              <AssetDialog key={asset.id} asset={asset}>
-                <AssetCard asset={asset} onDelete={setDeleteTarget} />
-              </AssetDialog>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {data.images.map((asset, i) => (
+              <div
+                key={asset.id}
+                className="animate-reveal-up"
+                style={{ animationDelay: `${Math.min(i, 11) * 45}ms` }}
+              >
+                <AssetDialog asset={asset}>
+                  <AssetCard asset={asset} onDelete={setDeleteTarget} />
+                </AssetDialog>
+              </div>
             ))}
           </div>
         )}

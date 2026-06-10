@@ -14,13 +14,13 @@ export function OCRTextSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs uppercase tracking-wide text-muted-foreground">
+        <h3 className="font-mono text-[11px] uppercase tracking-[0.08em] text-text-secondary">
           Extracted OCR Text
         </h3>
         {ocr_status === "done" && ocr_snippet && (
           <Badge
-            variant="default"
-            className="flex items-center gap-1"
+            variant="outline"
+            className="flex items-center gap-1 text-success border-success/40"
           >
             <CheckCircle className="size-3" />
             High Confidence
@@ -29,7 +29,7 @@ export function OCRTextSection({
       </div>
 
       {ocr_status === "done" && ocr_snippet && (
-        <pre className="text-xs font-mono bg-muted border border-border rounded-lg p-4 overflow-x-auto whitespace-pre-wrap wrap-break-word">
+        <pre className="text-xs font-mono bg-surface-raised border border-border rounded-lg p-4 overflow-x-auto whitespace-pre-wrap wrap-break-word">
           {ocr_snippet}
         </pre>
       )}

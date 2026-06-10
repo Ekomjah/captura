@@ -9,26 +9,26 @@ interface OcrStatusBadgeProps {
 export function OcrStatusBadge({ status }: OcrStatusBadgeProps) {
   const config = {
     pending: {
-      variant: "secondary" as const,
       icon: Clock,
       label: "Processing",
+      className: "text-warning border-warning/40",
     },
     done: {
-      variant: "default" as const,
       icon: CheckCircle,
       label: "Complete",
+      className: "text-success border-success/40",
     },
     failed: {
-      variant: "destructive" as const,
       icon: XCircle,
       label: "Failed",
+      className: "text-destructive border-destructive/50",
     },
   };
 
-  const { variant, icon: Icon, label } = config[status];
+  const { icon: Icon, label, className } = config[status];
 
   return (
-    <Badge variant={variant} className="flex items-center gap-1">
+    <Badge variant="outline" className={`flex items-center gap-1 ${className}`}>
       <Icon className="size-3" />
       {label}
     </Badge>

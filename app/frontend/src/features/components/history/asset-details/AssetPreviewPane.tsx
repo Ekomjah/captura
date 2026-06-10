@@ -20,12 +20,12 @@ export function AssetPreviewPane({ asset }: AssetPreviewPaneProps) {
   const resolution = getResolution(asset);
 
   return (
-    <div className="relative w-full lg:w-3/4 bg-muted h-full flex items-center justify-center rounded-lg">
+    <div className="relative w-full lg:w-3/4 bg-background dot-grid h-full flex items-center justify-center rounded-lg">
       <div className="absolute inset-0 flex items-center justify-center p-8">
         <ImageWithFallback
           src={previewUrl}
           alt={`Asset ${asset.id}`}
-          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          className="max-w-full max-h-full object-contain rounded-lg"
         />
       </div>
       <MetadataHUD

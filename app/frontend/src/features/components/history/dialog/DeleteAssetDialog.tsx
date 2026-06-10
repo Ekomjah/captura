@@ -46,7 +46,7 @@ export function DeleteAssetDialog({
           <Button
             onClick={onDelete}
             disabled={isDeleting}
-            className="bg-red-600 text-white hover:bg-red-700 active:bg-red-800"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             {isDeleting ? (
               <>

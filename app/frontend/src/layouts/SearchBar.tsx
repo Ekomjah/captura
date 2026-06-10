@@ -36,9 +36,9 @@ export function MenuSearchBar() {
     }
   };
   return (
-    <InputGroup className="max-w-xs">
+    <InputGroup className="w-40 rounded-xl bg-card/60 transition-[box-shadow,border-color,width] duration-300 focus-within:w-56 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 sm:w-56 sm:focus-within:w-72">
       <InputGroupInput
-        placeholder="Search..."
+        placeholder="Search captures…"
         ref={inputRef}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
@@ -46,7 +46,7 @@ export function MenuSearchBar() {
         onChange={(e) => setQuery(e.target.value)}
       />
       <InputGroupAddon>
-        <Search />
+        <Search className="text-muted-foreground" />
       </InputGroupAddon>
       <InputGroupAddon align="inline-end">
         <InputGroupButton variant="outline" onClick={handleSearchClick}>

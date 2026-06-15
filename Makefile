@@ -44,3 +44,6 @@ test:
 
 build:
 	pnpm --filter frontend build
+
+start:
+	pnpm run dev:api && pnpm run dev:web

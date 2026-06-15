@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { UploadModal } from "@/features/upload";
-import { Images } from "lucide-react";
+import { ImagePlus, Plus } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { AssetCard } from "@/features/components/history/asset-card/AssetCard";
 import { AssetCardSkeleton } from "@/features/components/history/asset-card/AssetCardSkeleton";
-import { EmptyHistoryState } from "@/features/components/history/EmptyHistoryState";
+import { ContactSheetEmptyState } from "@/features/components/ContactSheetEmptyState";
+import { PageHeader } from "@/features/components/PageHeader";
 import { AssetDialog } from "@/features/components/history/dialog/AssetDialog";
 import { DeleteAssetDialog } from "@/features/components/history/dialog/DeleteAssetDialog";
 import ErrorBox from "../ErrorBox";
@@ -44,25 +45,33 @@ export function HistoryPage() {
   return (
     <div className="mb-10">
       {!isError && (
-        <div className="flex justify-between items-center w-full px-7 py-4">
-          <div className="px-7 py-4">
-            <h1 className="text-lg font-semibold">ASSET MANAGEMENT</h1>
-            <p className="text-primary font-light text-4xl">History</p>
-          </div>
-
-          <Button
-            className="rounded-none w-full"
-            onClick={() => setUploadModalOpen(true)}
-          >
-            <Images className="mr-2" />
-            Upload Image
-          </Button>
-        </div>
+        <PageHeader
+          title="History"
+          meta={
+            !isPending &&
+            data?.total != null &&
+            data.total > 0 && (
+              <>
+                {data.total} capture{data.total !== 1 ? "s" : ""} archived
+              </>
+            )
+          }
+          action={
+            <Button
+              size="lg"
+              onClick={() => setUploadModalOpen(true)}
+              className="shrink-0"
+            >
+              <Plus className="mr-2" />
+              Upload Image
+            </Button>
+          }
+        />
       )}
 
       <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
 
-      <div className="mb-10 p-8 w-full">
+      <div className="mb-10 px-6 py-8 sm:px-10">
         {isError && (
           <div className="mb-4">
             <ErrorBox
@@ -73,25 +82,42 @@ export function HistoryPage() {
         )}
 
         {isPending && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
               <AssetCardSkeleton key={i} />
             ))}
           </div>
         )}
 
         {!isPending && data?.images && data.images.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="reveal-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {data.images.map((asset) => (
-              <AssetDialog key={asset.id} asset={asset}>
-                <AssetCard asset={asset} onDelete={setDeleteTarget} />
-              </AssetDialog>
+              <div key={asset.id}>
+                <AssetDialog asset={asset}>
+                  <AssetCard asset={asset} onDelete={setDeleteTarget} />
+                </AssetDialog>
+              </div>
             ))}
           </div>
         )}
 
         {!isPending && !isError && data?.images.length === 0 && (
-          <EmptyHistoryState onUploadClick={() => setUploadModalOpen(true)} />
+          <ContactSheetEmptyState
+            icon={ImagePlus}
+            title="No assets yet"
+            description="Upload your first screenshot to develop it into a searchable, multi-format cloud asset."
+            className="min-h-110"
+            action={
+              <Button
+                size="lg"
+                onClick={() => setUploadModalOpen(true)}
+                className="mt-7"
+              >
+                <Plus className="mr-2" />
+                Upload Image
+              </Button>
+            }
+          />
         )}
       </div>
 

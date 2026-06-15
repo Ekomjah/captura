@@ -12,6 +12,8 @@ type UploadZoneProps = {
   onFileSelected: (file: File, previewUrl: string) => void;
 };
 
+const ACCEPTED_LABELS = ["JPEG", "PNG", "WebP"];
+
 export function UploadZone({
   disabled = false,
   selectedFile,
@@ -47,30 +49,59 @@ export function UploadZone({
     <div
       {...getRootProps()}
       className={cn(
-        "w-full p-8 border-2 border-dashed rounded-md flex flex-col items-center justify-center transition-colors",
-        disabled
-          ? "cursor-not-allowed opacity-60 border-muted-foreground/20 bg-muted/10"
-          : "cursor-pointer",
-        !disabled && isDragActive && "border-primary bg-primary/5",
+        "group relative flex w-full flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-all duration-200",
+        disabled && "cursor-not-allowed border-border/50 bg-muted/10 opacity-60",
+        !disabled && "cursor-pointer",
+        !disabled &&
+          isDragActive &&
+          "glow-primary scale-[1.01] border-primary bg-primary/5",
         !disabled &&
           !isDragActive &&
-          "border-muted-foreground/30 bg-muted/20",
+          "border-border hover:border-primary/50 hover:bg-muted/30",
       )}
     >
       <Input {...getInputProps()} />
-      <div className="bg-linear-to-b from-muted-foreground/40 to-muted-foreground/20 dark:from-muted-foreground/50 dark:to-muted-foreground/30 p-8 rounded-full mb-4">
-        <CloudUpload size={64} color="currentColor" />
-      </div>
-      {isDragActive ? (
-        <p className="font-medium text-muted-foreground">Drop the image here</p>
-      ) : (
-        <div className="font-medium text-muted-foreground flex flex-col items-center justify-center gap-2 text-center">
-          <p>Drag an image here, or click to select a file</p>
-          <span className="text-sm text-muted-foreground/80">
-            One image per upload
-          </span>
+
+      {/* Contact-sheet grid texture */}
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-50" />
+
+      <div className="relative flex flex-col items-center">
+        <div
+          className={cn(
+            "mb-5 flex size-16 items-center justify-center rounded-2xl ring-1 transition-all duration-200",
+            isDragActive
+              ? "glow-primary scale-110 bg-primary/15 ring-primary/30"
+              : "bg-primary/10 ring-primary/20 group-hover:bg-primary/15",
+          )}
+        >
+          <CloudUpload className="size-7 text-primary" />
         </div>
-      )}
+
+        {isDragActive ? (
+          <p className="font-heading text-lg font-semibold tracking-tight">
+            Drop to develop
+          </p>
+        ) : (
+          <>
+            <p className="font-heading text-lg font-semibold tracking-tight">
+              Drag a capture here
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              or <span className="text-primary">browse</span> to select a file
+            </p>
+            <div className="mt-5 flex items-center gap-1.5">
+              {ACCEPTED_LABELS.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-md border border-border/70 bg-card/60 px-2 py-0.5 font-mono text-[0.62rem] uppercase tracking-wider text-muted-foreground"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

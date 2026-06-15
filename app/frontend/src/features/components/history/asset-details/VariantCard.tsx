@@ -9,16 +9,12 @@ interface VariantCardProps {
 
 export function VariantCard({ variant, isRecommended }: VariantCardProps) {
   return (
-    <div className="bg-muted border border-border px-4 py-3 rounded-lg hover:border-primary/30 transition-colors">
-      <div className="flex items-center gap-2 mb-1">
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/50 px-4 py-3 transition-colors hover:border-primary/40 hover:bg-muted">
+      <div className="flex items-center gap-2">
         <Badge variant="outline">{variant.format.toUpperCase()}</Badge>
-        {isRecommended && (
-          <Badge variant="default">
-            Recommended
-          </Badge>
-        )}
+        {isRecommended && <Badge variant="default">Recommended</Badge>}
       </div>
-      <p className="text-sm text-muted-foreground">
+      <p className="font-data text-sm text-muted-foreground">
         {formatFileSize(variant.size_bytes)}
       </p>
     </div>

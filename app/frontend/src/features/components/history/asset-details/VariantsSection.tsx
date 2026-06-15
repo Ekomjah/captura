@@ -10,7 +10,7 @@ export function VariantsSection({ variants }: VariantsSectionProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xs uppercase tracking-wide text-muted-foreground">
+      <h3 className="text-sm font-semibold text-foreground">
         Variants
       </h3>
       {validVariants.length > 0 ? (

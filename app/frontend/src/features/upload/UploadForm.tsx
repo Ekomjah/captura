@@ -11,9 +11,14 @@ import { UploadZone } from "./UploadZone";
 type UploadFormProps = {
   className?: string;
   onSuccess?: (response: UploadResponse) => void;
+  onPendingChange?: (pending: boolean) => void;
 };
 
-export function UploadForm({ className, onSuccess }: UploadFormProps) {
+export function UploadForm({
+  className,
+  onSuccess,
+  onPendingChange,
+}: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -77,6 +82,10 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
+
   const apiError = isError ? getApiError(error) : null;
   const errorMessage =
     apiError?.detail ??
@@ -89,7 +98,14 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
       {isSuccess && data && (
         <div className="space-y-4 mb-4">
           <UploadSuccessSummary response={data} />
-          <Button type="button" variant="outline" onClick={handleReset}>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={handleReset}
+            className="w-full"
+          >
+            <RotateCcw className="size-4" />
             Upload another
           </Button>
         </div>

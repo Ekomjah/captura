@@ -18,27 +18,84 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useSearch } from "@/context/SearchContext";
+import { cn } from "@/lib/utils";
+
+/** Captura brand mark — capture frame + lens, mirroring the app favicon. */
+function CapturaMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 8V5a1 1 0 0 1 1-1h3" />
+      <path d="M20 8V5a1 1 0 0 0-1-1h-3" />
+      <path d="M4 16v3a1 1 0 0 0 1 1h3" />
+      <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
+      <circle cx="12" cy="12" r="3.5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+const navItemClass = cn(
+  "relative my-0.5 h-10 gap-3 rounded-xl px-3 font-medium text-sidebar-foreground/80 transition-colors",
+  "before:absolute before:left-0 before:top-1/2 before:h-0 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-primary before:transition-all",
+  "hover:bg-sidebar-accent hover:text-sidebar-foreground",
+  "data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:before:h-5",
+  "data-[active=true]:[&_svg]:text-primary",
+);
 
 export function AppSidebar() {
   const { focusSearch } = useSearch();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const { theme, setTheme } = useTheme();
+
+  const themeButtonClass = (active: boolean) =>
+    cn(
+      "h-9 flex-1 justify-center rounded-lg transition-colors",
+      active
+        ? "bg-primary/15 text-primary [&_svg]:text-primary"
+        : "text-muted-foreground hover:text-sidebar-foreground",
+    );
+
   return (
     <Sidebar>
-      <SidebarHeader className="flex-col items-left justify-center border-b px-7 m-0 pt-8">
-        <h1 className="text-2xl font-extrabold tracking-tight m-0 p-0">
-          Captura
-        </h1>
-        <p className="font-medium p-0">Technical Precision</p>
+      <SidebarHeader className="flex-col items-start justify-center gap-3 border-b border-sidebar-border px-6 pt-7 pb-5">
+        <div className="flex items-center gap-3">
+          <span className="glow-primary flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <CapturaMark className="size-5.5" />
+          </span>
+          <div className="flex flex-col">
+            <h1 className="font-heading text-2xl font-extrabold tracking-tight leading-none">
+              Captura
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Capture library
+            </p>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu className="flex gap-2 pl-4 pr-2 py-4 w-full">
+        <p className="px-6 pt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          Workspace
+        </p>
+        <SidebarMenu className="flex gap-0.5 px-3 py-4 w-full">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/")}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/")}
+              className={navItemClass}
+            >
               <Link to="/">
                 <History />
-                <div>History</div>
+                <span>History</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -47,48 +104,59 @@ export function AppSidebar() {
               asChild
               isActive={isActive("/search")}
               onClick={focusSearch}
+              className={navItemClass}
             >
               <Link to="/search">
                 <FileSearchCorner />
-                <div>Search</div>
+                <span>Search</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/settings")}
+              className={navItemClass}
+            >
               <Link to="/settings">
                 <Settings />
-                <div>Settings</div>
+                <span>Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t pt-4">
-        <SidebarMenu className="flex-row border rounded-lg gap-2 w-full justify-evenly">
-          <SidebarMenuItem className="p-0">
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+          Appearance
+        </p>
+        <SidebarMenu className="flex-row gap-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-1">
+          <SidebarMenuItem className="flex-1 p-0">
             <SidebarMenuButton
               onClick={() => setTheme("light")}
               isActive={theme === "light"}
               tooltip="Light theme"
+              className={themeButtonClass(theme === "light")}
             >
               <Sun />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem className="p-0">
+          <SidebarMenuItem className="flex-1 p-0">
             <SidebarMenuButton
               onClick={() => setTheme("system")}
               isActive={theme === "system"}
               tooltip="System theme"
+              className={themeButtonClass(theme === "system")}
             >
               <MonitorCog />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem className="p-0">
+          <SidebarMenuItem className="flex-1 p-0">
             <SidebarMenuButton
               onClick={() => setTheme("dark")}
               isActive={theme === "dark"}
               tooltip="Dark theme"
+              className={themeButtonClass(theme === "dark")}
             >
               <Moon />
             </SidebarMenuButton>

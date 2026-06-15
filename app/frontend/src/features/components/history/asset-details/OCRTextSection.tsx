@@ -14,8 +14,8 @@ export function OCRTextSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          Extracted OCR Text
+        <h3 className="text-sm font-semibold text-foreground">
+          Extracted OCR text
         </h3>
         {ocr_status === "done" && ocr_snippet && (
           <Badge

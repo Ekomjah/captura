@@ -76,17 +76,17 @@ export function AppSidebar() {
             <h1 className="font-heading text-2xl font-extrabold tracking-tight leading-none">
               Captura
             </h1>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground mt-1">
-              Technical Precision
+            <p className="mt-1 text-xs text-muted-foreground">
+              Capture library
             </p>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <p className="px-6 pt-5 pb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+        <p className="px-6 pt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
           Workspace
         </p>
-        <SidebarMenu className="flex gap-0.5 px-3 py-2 w-full">
+        <SidebarMenu className="flex gap-0.5 px-3 py-4 w-full">
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

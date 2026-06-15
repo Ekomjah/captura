@@ -26,7 +26,7 @@ export function UploadFilePreview({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-primary" aria-hidden />
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+          <span className="text-xs font-medium text-primary">
             Ready to develop
           </span>
         </div>

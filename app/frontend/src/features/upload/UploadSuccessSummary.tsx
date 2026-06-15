@@ -21,10 +21,9 @@ const ocrStatusBadgeVariant: Record<
   failed: "destructive",
 };
 
-/** Small uppercase mono label used for each receipt field. */
 function FieldLabel({ children }: { children: string }) {
   return (
-    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+    <p className="text-xs font-medium text-muted-foreground">
       {children}
     </p>
   );

@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { UploadModal } from "@/features/upload";
-import { Plus } from "lucide-react";
+import { ImagePlus, Plus } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { AssetCard } from "@/features/components/history/asset-card/AssetCard";
 import { AssetCardSkeleton } from "@/features/components/history/asset-card/AssetCardSkeleton";
-import { EmptyHistoryState } from "@/features/components/history/EmptyHistoryState";
+import { ContactSheetEmptyState } from "@/features/components/ContactSheetEmptyState";
+import { PageHeader } from "@/features/components/PageHeader";
 import { AssetDialog } from "@/features/components/history/dialog/AssetDialog";
 import { DeleteAssetDialog } from "@/features/components/history/dialog/DeleteAssetDialog";
 import ErrorBox from "../ErrorBox";
@@ -44,30 +45,28 @@ export function HistoryPage() {
   return (
     <div className="mb-10">
       {!isError && (
-        <div className="flex flex-col gap-4 border-b border-border/60 px-6 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-10">
-          <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Asset Management
-            </p>
-            <h1 className="font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-              History
-            </h1>
-            {!isPending && data?.total != null && data.total > 0 && (
-              <p className="font-data text-sm text-muted-foreground">
+        <PageHeader
+          title="History"
+          meta={
+            !isPending &&
+            data?.total != null &&
+            data.total > 0 && (
+              <>
                 {data.total} capture{data.total !== 1 ? "s" : ""} archived
-              </p>
-            )}
-          </div>
-
-          <Button
-            size="lg"
-            onClick={() => setUploadModalOpen(true)}
-            className="shrink-0"
-          >
-            <Plus className="mr-2" />
-            Upload Image
-          </Button>
-        </div>
+              </>
+            )
+          }
+          action={
+            <Button
+              size="lg"
+              onClick={() => setUploadModalOpen(true)}
+              className="shrink-0"
+            >
+              <Plus className="mr-2" />
+              Upload Image
+            </Button>
+          }
+        />
       )}
 
       <UploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} />
@@ -91,13 +90,9 @@ export function HistoryPage() {
         )}
 
         {!isPending && data?.images && data.images.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {data.images.map((asset, i) => (
-              <div
-                key={asset.id}
-                className="animate-reveal-up"
-                style={{ animationDelay: `${Math.min(i, 11) * 45}ms` }}
-              >
+          <div className="reveal-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {data.images.map((asset) => (
+              <div key={asset.id}>
                 <AssetDialog asset={asset}>
                   <AssetCard asset={asset} onDelete={setDeleteTarget} />
                 </AssetDialog>
@@ -107,7 +102,22 @@ export function HistoryPage() {
         )}
 
         {!isPending && !isError && data?.images.length === 0 && (
-          <EmptyHistoryState onUploadClick={() => setUploadModalOpen(true)} />
+          <ContactSheetEmptyState
+            icon={ImagePlus}
+            title="No assets yet"
+            description="Upload your first screenshot to develop it into a searchable, multi-format cloud asset."
+            className="min-h-110"
+            action={
+              <Button
+                size="lg"
+                onClick={() => setUploadModalOpen(true)}
+                className="mt-7"
+              >
+                <Plus className="mr-2" />
+                Upload Image
+              </Button>
+            }
+          />
         )}
       </div>
 

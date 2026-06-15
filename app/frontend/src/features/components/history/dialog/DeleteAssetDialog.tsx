@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2, TriangleAlert } from "lucide-react";
 
 interface DeleteAssetDialogProps {
   open: boolean;
@@ -28,7 +28,12 @@ export function DeleteAssetDialog({
     <Dialog open={open} onOpenChange={isDeleting ? undefined : onOpenChange}>
       <DialogContent showCloseButton={!isDeleting}>
         <DialogHeader>
-          <DialogTitle>Delete Asset</DialogTitle>
+          <div className="mb-1 flex size-11 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+            <TriangleAlert className="size-5 text-destructive" />
+          </div>
+          <DialogTitle className="font-heading text-xl tracking-tight">
+            Delete asset
+          </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete{" "}
             <span className="font-medium text-foreground">{fileName}</span>?
@@ -46,7 +51,7 @@ export function DeleteAssetDialog({
           <Button
             onClick={onDelete}
             disabled={isDeleting}
-            className="bg-red-600 text-white hover:bg-red-700 active:bg-red-800"
+            className="bg-destructive text-white hover:bg-destructive/90 focus-visible:border-destructive/40 focus-visible:ring-destructive/30"
           >
             {isDeleting ? (
               <>
@@ -54,7 +59,10 @@ export function DeleteAssetDialog({
                 Deleting...
               </>
             ) : (
-              "Delete"
+              <>
+                <Trash2 className="size-4" />
+                Delete
+              </>
             )}
           </Button>
         </DialogFooter>

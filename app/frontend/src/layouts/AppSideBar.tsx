@@ -15,11 +15,33 @@ import {
   Moon,
   MonitorCog,
   History,
-  Aperture,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useSearch } from "@/context/SearchContext";
 import { cn } from "@/lib/utils";
+
+/** Captura brand mark — capture frame + lens, mirroring the app favicon. */
+function CapturaMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 8V5a1 1 0 0 1 1-1h3" />
+      <path d="M20 8V5a1 1 0 0 0-1-1h-3" />
+      <path d="M4 16v3a1 1 0 0 0 1 1h3" />
+      <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
+      <circle cx="12" cy="12" r="3.5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
 
 const navItemClass = cn(
   "relative my-0.5 h-10 gap-3 rounded-xl px-3 font-medium text-sidebar-foreground/80 transition-colors",
@@ -48,7 +70,7 @@ export function AppSidebar() {
       <SidebarHeader className="flex-col items-start justify-center gap-3 border-b border-sidebar-border px-6 pt-7 pb-5">
         <div className="flex items-center gap-3">
           <span className="glow-primary flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Aperture className="size-5.5" />
+            <CapturaMark className="size-5.5" />
           </span>
           <div className="flex flex-col">
             <h1 className="font-heading text-2xl font-extrabold tracking-tight leading-none">

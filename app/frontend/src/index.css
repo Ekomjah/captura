@@ -10,8 +10,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: "Bricolage Grotesque", "Hanken Grotesk", sans-serif;
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-heading:
+    "Bricolage Grotesque Variable", "Hanken Grotesk Variable", sans-serif;
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   --color-sidebar-ring: var(--sidebar-ring);

@@ -111,11 +111,29 @@ def upload_variant_file(
     )
 
 
-def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
+def map_s3_exception(exc: Exception, action: str = "upload") -> tuple[str, str, int]:
+    """Map S3 exceptions to error responses.
+
+    Args:
+        exc: The exception to map.
+        action: The S3 action context ("upload", "delete", etc.) for better error messages.
+
+    Returns:
+        Tuple of (error_code, detail_message, status_code).
+    """
     if isinstance(exc, S3ConfigError):
         return ("ConfigurationError", str(exc), 500)
     if isinstance(exc, ClientError):
         code = exc.response.get("Error", {}).get("Code", "ClientError")
+
+        # Action-aware error messages
+        action_iams = {
+            "upload": "PutObject",
+            "delete": "DeleteObject",
+            "list": "ListBucket",
+        }
+        iam_action = action_iams.get(action, "S3 operations")
+
         mapping = {
             "SignatureDoesNotMatch": (
                 "S3AuthError",
@@ -124,7 +142,7 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
             ),
             "AccessDenied": (
                 "S3AccessDenied",
-                "S3 denied access. Confirm IAM policy includes PutObject for this bucket.",
+                f"S3 denied access. Confirm IAM policy includes {iam_action} for this bucket.",
                 500,
             ),
             "NoSuchBucket": (
@@ -134,7 +152,7 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
             ),
         }
         return mapping.get(
-            code, ("S3UploadError", f"S3 upload failed with code: {code}", 500)
+            code, ("S3Error", f"S3 {action} failed with code: {code}", 500)
         )
     if isinstance(exc, BotoCoreError):
         return (
@@ -149,9 +167,7 @@ def map_s3_exception(exc: Exception) -> tuple[str, str, int]:
     )
 
 
-def _delete_objects_under_prefix(
-    client, bucket_name: str, prefix: str
-) -> int:
+def _delete_objects_under_prefix(client, bucket_name: str, prefix: str) -> int:
     """Delete all objects under *prefix* in *bucket_name*. Returns count deleted."""
     paginator = client.get_paginator("list_objects_v2")
     deleted = 0
@@ -168,26 +184,35 @@ def _delete_objects_under_prefix(
     return deleted
 
 
-def delete_asset_from_s3(asset_id: str) -> None:
-    """Delete all S3 objects for *asset_id* from the raw and processed prefixes."""
+def delete_objects_from_s3(s3_keys: list[str]) -> None:
+    if not s3_keys:
+        logger.debug("no S3 keys to delete")
+        return
+
     config = load_s3_config()
     client = _s3_client(config)
 
-    for prefix in ("raw", "processed"):
-        key_prefix = f"uploads/{prefix}/{asset_id}/"
+    # AWS delete_objects supports up to 1000 objects per request
+    chunk_size = 1000
+    for i in range(0, len(s3_keys), chunk_size):
+        chunk = s3_keys[i : i + chunk_size]
         try:
-            count = _delete_objects_under_prefix(client, config.bucket_name, key_prefix)
-            if count:
-                logger.info(
-                    "deleted %d object(s) under s3://%s/%s",
-                    count,
-                    config.bucket_name,
-                    key_prefix,
-                )
+            objects = [{"Key": key} for key in chunk]
+            response = client.delete_objects(
+                Bucket=config.bucket_name,
+                Delete={"Objects": objects},
+            )
+            deleted_count = len(response.get("Deleted", []))
+            logger.info(
+                "deleted %d object(s) from s3://%s: %s",
+                deleted_count,
+                config.bucket_name,
+                chunk,
+            )
         except (ClientError, BotoCoreError):
             logger.exception(
-                "failed to delete objects under s3://%s/%s",
+                "failed to delete objects from s3://%s: %s",
                 config.bucket_name,
-                key_prefix,
+                chunk,
             )
             raise

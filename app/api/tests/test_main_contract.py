@@ -438,7 +438,7 @@ def test_delete_asset_removes_from_db(
     monkeypatch,
 ):
     """Deleting an existing asset returns 204 and removes the asset + variants."""
-    monkeypatch.setattr(main, "delete_asset_from_s3", lambda asset_id: None)
+    monkeypatch.setattr(main, "delete_objects_from_s3", lambda asset_id: None)
 
     _seed_asset(test_session, asset_id="delete-me-1")
     _seed_webp_variant(test_session, asset_id="delete-me-1")
@@ -465,7 +465,7 @@ def test_delete_asset_not_found_returns_404(
     monkeypatch,
 ):
     """Deleting a non-existent asset returns 404."""
-    monkeypatch.setattr(main, "delete_asset_from_s3", lambda asset_id: None)
+    monkeypatch.setattr(main, "delete_objects_from_s3", lambda asset_id: None)
 
     response = client_with_db.delete("/v1/delete/nonexistent-id")
 
@@ -489,7 +489,7 @@ def test_delete_asset_s3_failure_returns_500_and_preserves_db_row(
             "DeleteObject",
         )
 
-    monkeypatch.setattr(main, "delete_asset_from_s3", fake_s3_delete)
+    monkeypatch.setattr(main, "delete_objects_from_s3", fake_s3_delete)
 
     _seed_asset(test_session, asset_id="keep-me")
     _seed_webp_variant(test_session, asset_id="keep-me")

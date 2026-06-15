@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.map_db_exception import _map_db_exception
-from repo.delete_asset import delete_asset_from_db
+from repo.delete_asset import asset_exists, delete_asset_from_db, get_asset_s3_keys
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
 from repo.store_asset import store_asset
@@ -26,7 +26,7 @@ from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
 from services.s3_service import (
-    delete_asset_from_s3,
+    delete_objects_from_s3,
     map_s3_exception,
     upload_raw_file,
     upload_variant_file,
@@ -187,7 +187,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
     except UploadException:
         raise
     except Exception as exc:
-        error, detail, status_code = map_s3_exception(exc)
+        error, detail, status_code = map_s3_exception(exc, action="upload")
         raise UploadException(
             error=error,
             detail=detail,
@@ -235,26 +235,42 @@ async def delete_asset(
     asset_id: str,
     db: Session = Depends(get_db),
 ):
-    # Delete from S3 first — if this fails the DB stays untouched and the
-    # user can retry. Only proceed to DB deletion after S3 succeeds.
+    # First, verify the asset exists in the database before any deletion
+    if not asset_exists(asset_id, db):
+        raise UploadException(
+            error="NotFound",
+            detail=f"Asset with id {asset_id} not found",
+            status_code=404,
+        )
+
+    # Fetch the asset's S3 keys and variant S3 keys from DB
     try:
-        delete_asset_from_s3(asset_id)
+        s3_keys = get_asset_s3_keys(asset_id, db)
     except Exception as e:
-        error, detail, status_code = map_s3_exception(e)
+        error, detail, status_code = _map_db_exception(
+            e, action="fetching asset for deletion"
+        )
         raise UploadException(
             error=error,
             detail=detail,
             status_code=status_code,
         ) from e
 
+    # Delete the asset and all variant S3 keys
+    all_s3_keys = [s3_keys.asset_s3_key] + s3_keys.variant_s3_keys
+    try:
+        delete_objects_from_s3(all_s3_keys)
+    except Exception as e:
+        error, detail, status_code = map_s3_exception(e, action="delete")
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        ) from e
+
+    # Delete the asset and variants from the database
     try:
         delete_asset_from_db(asset_id, db)
-    except ValueError:
-        raise UploadException(
-            error="NotFound",
-            detail=f"Asset with id {asset_id} not found",
-            status_code=404,
-        )
     except Exception as e:
         error, detail, status_code = _map_db_exception(e, action="asset deletion")
         raise UploadException(

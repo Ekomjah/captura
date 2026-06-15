@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { UploadModal } from "@/features/upload";
-import { Images,Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useHistoryQuery } from "@/hooks/queries/useHistoryQuery";
 import { AssetCard } from "@/features/components/history/asset-card/AssetCard";
 import { AssetCardSkeleton } from "@/features/components/history/asset-card/AssetCardSkeleton";

@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "@clerk/react";
+import { Loader2 } from "lucide-react";
 
 /**
  * Gates the dashboard behind Clerk auth. Waits for Clerk to load before
@@ -13,7 +14,8 @@ export function ProtectedRoute() {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          Loading…
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
         </span>
       </div>
     );

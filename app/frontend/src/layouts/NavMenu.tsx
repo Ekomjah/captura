@@ -5,8 +5,11 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Bell } from "lucide-react";
 import { MenuSearchBar } from "./SearchBar";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/react";
 
 export function NavMenu() {
+  const { isSignedIn } = useUser();
+
   return (
     <NavigationMenu className="z-10">
       <NavigationMenuList className="flex items-center gap-2 sm:gap-3">
@@ -24,13 +27,29 @@ export function NavMenu() {
             <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary ring-2 ring-background" />
           </button>
         </NavigationMenuItem>
-        <NavigationMenuItem>
-          <img
-            src="https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=Aiden"
-            alt="avatar"
-            className="size-9 rounded-xl bg-muted ring-1 ring-border transition-shadow hover:ring-primary/50"
-          />
-        </NavigationMenuItem>
+
+        {isSignedIn ? (
+          <NavigationMenuItem>
+            <UserButton />
+          </NavigationMenuItem>
+        ) : (
+          <>
+            <NavigationMenuItem>
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 text-sm font-medium rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                  Sign in
+                </button>
+              </SignInButton>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <SignUpButton mode="modal">
+                <button className="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  Sign up
+                </button>
+              </SignUpButton>
+            </NavigationMenuItem>
+          </>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

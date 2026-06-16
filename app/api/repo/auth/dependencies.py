@@ -1,5 +1,6 @@
 # app/api/deps.py
 import re
+from asyncio.log import logger
 
 import jwt
 from core.config import get_settings
@@ -28,15 +29,15 @@ def _get_jwks_client() -> PyJWKClient:
 
 def _is_allowed_azp(azp: str) -> bool:
     settings = get_settings()
-    exact_origins = settings.clerk_authorized_parties or settings.allowed_origins
 
-    if azp in exact_origins:
+    # check regex first — covers dynamic preview URLs
+    if settings.allowed_origin_regex and re.fullmatch(
+        settings.allowed_origin_regex, azp
+    ):
         return True
 
-    return bool(
-        settings.allowed_origin_regex
-        and re.fullmatch(settings.allowed_origin_regex, azp)
-    )
+    exact_origins = settings.clerk_authorized_parties or settings.allowed_origins
+    return azp in exact_origins
 
 
 async def get_current_user(
@@ -62,7 +63,8 @@ async def get_current_user(
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
-    azp = payload.get("azp")
+    azp = payload.get("azp")    
+    logger.warning(f"DEBUG azp: '{azp}'")  # remove after confirming
 
     if not azp or not _is_allowed_azp(azp):
         raise HTTPException(status_code=401, detail="Invalid token origin")

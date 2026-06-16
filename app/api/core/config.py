@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     # Optional regex for dynamic origins (e.g. Vercel preview deployments).
     # Example: ``https://captura-frontend-.*-ekomjah\.vercel\.app``
     allowed_origin_regex: str | None = None
+    clerk_webhook_secret: str = ""
+    clerk_secret_key: str = ""
 
     @field_validator("allowed_origins", mode="before")
     @classmethod

@@ -15,16 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 def _search_assets_sqlite(
-    db: Session, q: str, page: int, page_size: int
+    db: Session, q: str, page: int, page_size: int, user_id: str = None
 ) -> PaginatedSearchResponse:
     """Substrate match for contract tests: SQLite has no FTS operators used in prod."""
     pattern = re.compile(re.escape(q), re.IGNORECASE)
-    ordered = (
-        db.query(Asset)
-        .filter(Asset.ocr_text.isnot(None))
-        .order_by(Asset.created_at.desc())
-        .all()
-    )
+    q_obj = db.query(Asset).filter(Asset.ocr_text.isnot(None))
+    if user_id:
+        q_obj = q_obj.filter(Asset.user_id == user_id)
+    ordered = q_obj.order_by(Asset.created_at.desc()).all()
     matches: list[tuple[Asset, str | None]] = []
     for asset in ordered:
         if not asset.ocr_text:
@@ -57,7 +55,7 @@ def _search_assets_sqlite(
 
 
 async def search_assets(
-    db: Session, q: str, page: int = 1, page_size: int = 20
+    db: Session, q: str, page: int = 1, page_size: int = 20, user_id: str = None
 ) -> PaginatedSearchResponse:
     q = q.strip()
     if not q:
@@ -71,20 +69,19 @@ async def search_assets(
     try:
         bind = db.get_bind()
         if bind.dialect.name == "sqlite":
-            return _search_assets_sqlite(db, q, page, page_size)
+            return _search_assets_sqlite(db, q, page, page_size, user_id=user_id)
 
         ts_query = func.plainto_tsquery("english", q)
-        query = (
-            db.query(
-                Asset,
-                func.ts_rank(Asset.search_vector, ts_query).label("rank"),
-                func.ts_headline("english", Asset.ocr_text, ts_query).label(
-                    "match_context"
-                ),
-            )
-            .filter(Asset.search_vector.op("@@")(ts_query))
-            .order_by(func.ts_rank(Asset.search_vector, ts_query).desc())
-        )
+        query = db.query(
+            Asset,
+            func.ts_rank(Asset.search_vector, ts_query).label("rank"),
+            func.ts_headline("english", Asset.ocr_text, ts_query).label(
+                "match_context"
+            ),
+        ).filter(Asset.search_vector.op("@@")(ts_query))
+        if user_id:
+            query = query.filter(Asset.user_id == user_id)
+        query = query.order_by(func.ts_rank(Asset.search_vector, ts_query).desc())
         total = query.count()
 
         offset = (page - 1) * page_size

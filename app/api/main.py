@@ -4,10 +4,12 @@ from typing import Annotated
 
 from core.config import get_settings
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.map_db_exception import _map_db_exception
+from models.model import User
+from repo.auth.dependencies import get_current_user
 from repo.delete_asset import delete_asset_from_db
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
@@ -31,13 +33,15 @@ from services.s3_service import (
     upload_raw_file,
     upload_variant_file,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from svix.webhooks import Webhook
 
-settings = get_settings()
+env_config = get_settings()
 
 app = FastAPI(
     title="Captura API",
-    docs_url="/docs" if settings.environment != "production" else None,
+    docs_url="/docs" if env_config.environment != "production" else None,
     version="0.1.0",
 )
 load_dotenv()
@@ -54,8 +58,8 @@ for logger_name in ["repo", "services", "models", "schema"]:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_origin_regex=settings.allowed_origin_regex,
+    allow_origins=env_config.allowed_origins,
+    allow_origin_regex=env_config.allowed_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,6 +89,32 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
     }[fmt]
 
 
+@app.post("/webhooks/clerk")
+async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    payload = await request.body()
+    headers = dict(request.headers)
+
+    wh = Webhook(env_config.clerk_webhook_secret)
+    try:
+        event = wh.verify(payload, headers)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid webhook")
+
+    if event["type"] == "user.created":
+        data = event["data"]
+        email_addresses = data.get("email_addresses", [])
+        email = email_addresses[0]["email_address"] if email_addresses else None
+
+        if not email:
+            return {"status": "skipped", "reason": "no email address"}
+
+    user = User(clerk_id=data["id"], email=email)
+    db.add(user)
+    await db.commit()
+
+    return {"status": "ok"}
+
+
 @app.post(
     "/v1/upload",
     status_code=201,
@@ -98,7 +128,11 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
     },
     tags=["assets"],
 )
-async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_file(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     try:
         if not file.filename:
             raise UploadException(
@@ -167,6 +201,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         )
         db_store: UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
+            user_id=current_user.id,
             ocr_text=ocr_text,
             ocr_status=ocr_status,
             s3_key=upload_result.s3_key,
@@ -198,11 +233,12 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
 @app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])
 async def get_history(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     try:
-        return await get_all_assets(db, page, page_size)
+        return await get_all_assets(db, page, page_size, user_id=current_user.id)
     except Exception as e:
         error, detail, status_code = _map_db_exception(e, action="history query")
         raise UploadException(
@@ -218,9 +254,10 @@ async def search_endpoint(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        return await search_assets(db, q, page, page_size)
+        return await search_assets(db, q, page, page_size, user_id=current_user.id)
     except Exception as e:
         error, detail, status_code = _map_db_exception(e, action="search query")
         raise UploadException(
@@ -234,9 +271,8 @@ async def search_endpoint(
 async def delete_asset(
     asset_id: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    # Delete from S3 first — if this fails the DB stays untouched and the
-    # user can retry. Only proceed to DB deletion after S3 succeeds.
     try:
         delete_asset_from_s3(asset_id)
     except Exception as e:
@@ -248,7 +284,7 @@ async def delete_asset(
         ) from e
 
     try:
-        delete_asset_from_db(asset_id, db)
+        delete_asset_from_db(asset_id, db, current_user.id)
     except ValueError:
         raise UploadException(
             error="NotFound",

@@ -16,10 +16,12 @@ import { useDeleteMutation } from "@/hooks/mutations/useDeleteMutation";
 import { getDisplayName } from "@/lib/utils/assetHelpers";
 import { toast } from "sonner";
 import type { AssetSummary } from "@/lib/types/api";
+import { useAuth } from "@clerk/react";
 
 const PAGE_SIZE = 20;
 
 export function HistoryPage() {
+  const { userId } = useAuth();
   const [page, setPage] = useState(1);
   const { isPending, isError, error, data } = useHistoryQuery(page, PAGE_SIZE);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -76,7 +78,7 @@ export function HistoryPage() {
           <div className="mb-4">
             <ErrorBox
               message={error?.detail ?? "An error has occurred"}
-              queryKey={queryKeys.history(page, PAGE_SIZE)}
+              queryKey={queryKeys.history(userId, page, PAGE_SIZE)}
             />
           </div>
         )}

@@ -8,6 +8,7 @@ import { PageHeader } from "@/features/components/PageHeader";
 import { queryKeys } from "@/lib/api/capturapi";
 import { SearchResultCard } from "./SearchResultCard";
 import { ScanSearch, SearchX } from "lucide-react";
+import { useAuth } from "@clerk/react";
 
 const PAGE_SIZE = 20;
 
@@ -28,6 +29,7 @@ function SearchResultSkeleton() {
 }
 
 export function SearchPage() {
+  const { userId } = useAuth();
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") ?? "";
   const [page, setPage] = useState(1);
@@ -79,7 +81,7 @@ export function SearchPage() {
               <div className="mb-4">
                 <ErrorBox
                   message={error?.detail ?? "An error has occurred"}
-                  queryKey={queryKeys.search(query, page, PAGE_SIZE)}
+                  queryKey={queryKeys.search(userId, query, page, PAGE_SIZE)}
                 />
               </div>
             )}

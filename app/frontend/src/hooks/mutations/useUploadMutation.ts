@@ -1,5 +1,6 @@
 import { queryKeys, uploadAsset } from "@/lib/api/capturapi";
 import type { UploadResponse } from "@/lib/types/api";
+import { useAuth } from "@clerk/react";
 import {
   useMutation,
   useQueryClient,
@@ -14,13 +15,14 @@ export function useUploadMutation(
   options?: UseUploadMutationOptions,
 ): UseMutationResult<UploadResponse, Error, File> {
   const queryClient = useQueryClient();
+  const { getToken, userId } = useAuth();
 
   return useMutation({
-    mutationFn: (file: File) => uploadAsset(file),
+    mutationFn: (file: File) => uploadAsset(getToken, file),
     onSuccess: (data) => {
       // Invalidate only history queries, not search or other queries
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.all(), "history"],
+        queryKey: [...queryKeys.all(userId), "history"],
       });
       options?.onSuccess?.(data);
     },

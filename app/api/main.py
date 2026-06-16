@@ -210,7 +210,7 @@ async def upload_file(
         )
         db_store: UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
-            user_id=current_user.id,
+            user_id=str(current_user.id),
             ocr_text=ocr_text,
             ocr_status=ocr_status,
             s3_key=upload_result.s3_key,

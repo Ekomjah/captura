@@ -7,11 +7,13 @@ Story 3.1 insert/read behavior end-to-end while pair-programming.
 
 import os
 from collections.abc import Generator
+from uuid import UUID
 
 import pytest
 from db.base import Base
 from fastapi.testclient import TestClient
-from models.model import Asset, AssetVariant
+from models.model import Asset, AssetVariant, User
+from repo.auth.dependencies import get_current_user
 from schema.upload import UploadVariant, VariantFormat
 from services.ocr_service import OCRExtractionError
 from sqlalchemy import String, create_engine
@@ -27,6 +29,8 @@ from main import app
 
 client = TestClient(app)
 TEST_SEED_ASSET_ID_PREFIX = "dummy-seed-asset-"
+TEST_USER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+TEST_CLERK_ID = "user_test_123"
 
 
 @pytest.fixture
@@ -56,6 +60,8 @@ def test_session() -> Generator[Session]:
 
     db = TestingSessionLocal()
     seed_module._seeds_cleaned = False
+    db.add(User(id=TEST_USER_ID, clerk_id=TEST_CLERK_ID, email="test@example.com"))
+    db.commit()
     try:
         yield db
     finally:
@@ -71,7 +77,13 @@ def client_with_db(test_session: Session) -> Generator[TestClient]:
     def override_get_db() -> Generator[Session]:
         yield test_session
 
+    async def override_current_user() -> User:
+        user = test_session.get(User, TEST_USER_ID)
+        assert user is not None
+        return user
+
     app.dependency_overrides[main.get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_current_user
     try:
         yield client
     finally:
@@ -119,6 +131,7 @@ def _seed_asset(
     asset = Asset(
         id=asset_id,
         s3_key=f"uploads/raw/{asset_id}/screenshot.png",
+        user_id=TEST_USER_ID,
         ocr_text=ocr_text,
         ocr_status=ocr_status,
         size_bytes=8,
@@ -153,6 +166,7 @@ def _seed_dummy_assets_for_cleanup(db: Session) -> None:
         asset_id = f"{TEST_SEED_ASSET_ID_PREFIX}{i}"
         asset = Asset(
             id=asset_id,
+            user_id=TEST_USER_ID,
             s3_key=f"seed/raw/dummy-{i}.png",
             ocr_text=f"seeded text {i}",
             ocr_status="done",

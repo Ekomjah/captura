@@ -51,5 +51,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Apply DB migrations
+        working-directory: app/api
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          uv sync
+          uv run alembic upgrade head
+
       - name: Trigger Render deploy
         run: curl -sf "${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}"

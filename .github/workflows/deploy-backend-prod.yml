@@ -30,5 +30,16 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/captura-api:${{ github.sha }}
 
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Apply DB migrations
+        working-directory: app/api
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          uv sync
+          uv run alembic upgrade head
+
       - name: Trigger Render deploy
         run: curl -sf "${{ secrets.RENDER_DEPLOY_HOOK }}"

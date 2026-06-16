@@ -10,23 +10,33 @@ from services.db_service import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-env_config = get_settings()
+_jwks_client: PyJWKClient | None = None
+_jwks_client_url: str | None = None
+
+
+def _get_jwks_client() -> PyJWKClient:
+    settings = get_settings()
+    if not settings.clerk_jwks_url:
+        raise HTTPException(status_code=500, detail="Clerk JWKS URL is not configured")
+
+    global _jwks_client, _jwks_client_url
+    if _jwks_client is None or _jwks_client_url != settings.clerk_jwks_url:
+        _jwks_client = PyJWKClient(settings.clerk_jwks_url, cache_keys=True)
+        _jwks_client_url = settings.clerk_jwks_url
+    return _jwks_client
 
 
 def _is_allowed_azp(azp: str) -> bool:
-    # Check exact origins first
-    if azp in env_config.allowed_origins:
+    settings = get_settings()
+    exact_origins = settings.clerk_authorized_parties or settings.allowed_origins
+
+    if azp in exact_origins:
         return True
-    # Fall back to regex (for Vercel preview URLs etc.)
-    if env_config.allowed_origin_regex:
-        return bool(re.fullmatch(env_config.allowed_origin_regex, azp))
-    return False
 
-
-CLERK_JWKS_URL = "https://api.clerk.com/v1/jwks"
-
-# Cached JWKS client — created once, reused across requests
-_jwks_client = PyJWKClient(CLERK_JWKS_URL, cache_keys=True)
+    return bool(
+        settings.allowed_origin_regex
+        and re.fullmatch(settings.allowed_origin_regex, azp)
+    )
 
 
 async def get_current_user(
@@ -38,7 +48,7 @@ async def get_current_user(
     token = authorization.removeprefix("Bearer ")
 
     try:
-        signing_key = _jwks_client.get_signing_key_from_jwt(token)
+        signing_key = _get_jwks_client().get_signing_key_from_jwt(token)
         payload = jwt.decode(
             token,
             signing_key.key,

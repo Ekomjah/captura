@@ -33,6 +33,7 @@ from services.s3_service import (
     upload_raw_file,
     upload_variant_file,
 )
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from svix.webhooks import Webhook
@@ -108,9 +109,17 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         if not email:
             return {"status": "skipped", "reason": "no email address"}
 
-    user = User(clerk_id=data["id"], email=email)
-    db.add(user)
-    await db.commit()
+        user = User(clerk_id=data["id"], email=email)
+        db.add(user)
+        await db.commit()
+
+    if event["type"] == "user.deleted":
+        clerk_id = event["data"]["id"]
+        result = await db.execute(select(User).where(User.clerk_id == clerk_id))
+        user = result.scalar_one_or_none()
+        if user:
+            await db.delete(user)
+            await db.commit()
 
     return {"status": "ok"}
 

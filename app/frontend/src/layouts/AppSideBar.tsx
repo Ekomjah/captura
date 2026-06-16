@@ -19,29 +19,7 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 import { useSearch } from "@/context/SearchContext";
 import { cn } from "@/lib/utils";
-
-/** Captura brand mark — capture frame + lens, mirroring the app favicon. */
-function CapturaMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M4 8V5a1 1 0 0 1 1-1h3" />
-      <path d="M20 8V5a1 1 0 0 0-1-1h-3" />
-      <path d="M4 16v3a1 1 0 0 0 1 1h3" />
-      <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
-      <circle cx="12" cy="12" r="3.5" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
+import { CapturaMark } from "@/components/CapturaMark";
 
 const navItemClass = cn(
   "relative my-0.5 h-10 gap-3 rounded-xl px-3 font-medium text-sidebar-foreground/80 transition-colors",
@@ -90,10 +68,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={isActive("/")}
+              isActive={isActive("/dashboard/history")}
               className={navItemClass}
             >
-              <Link to="/">
+              <Link to="/dashboard/history">
                 <History />
                 <span>History</span>
               </Link>
@@ -102,11 +80,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={isActive("/search")}
+              isActive={isActive("/dashboard/search")}
               onClick={focusSearch}
               className={navItemClass}
             >
-              <Link to="/search">
+              <Link to="/dashboard/search">
                 <FileSearchCorner />
                 <span>Search</span>
               </Link>
@@ -115,10 +93,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={isActive("/settings")}
+              isActive={isActive("/dashboard/settings")}
               className={navItemClass}
             >
-              <Link to="/settings">
+              <Link to="/dashboard/settings">
                 <Settings />
                 <span>Settings</span>
               </Link>

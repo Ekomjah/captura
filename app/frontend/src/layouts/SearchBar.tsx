@@ -21,7 +21,7 @@ export function MenuSearchBar() {
     setQuery(urlQuery);
   }
 
-  const handleClick = () => navigate("/search");
+  const handleClick = () => navigate("/dashboard/search");
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -32,7 +32,7 @@ export function MenuSearchBar() {
 
   const handleSearchClick = () => {
     if (query.trim() !== "") {
-      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+      navigate(`/dashboard/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
   return (

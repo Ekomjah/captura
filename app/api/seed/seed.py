@@ -3,10 +3,14 @@
 from datetime import datetime
 
 from db.session import engine
-from models.model import Asset, AssetVariant
+from models.model import Asset, AssetVariant, User
 from sqlalchemy.orm import Session
 
 _seeds_cleaned = False
+
+SEED_USER_ID = "00000000-0000-0000-0000-000000000000"
+SEED_USER_EMAIL = "seed@internal.local"
+SEED_USER_CLERK_ID = "seed_clerk_id"
 
 
 def seed_db(session: Session):
@@ -19,9 +23,18 @@ def seed_db(session: Session):
 
     now = datetime.utcnow()
 
+    seed_user = User(
+        id=SEED_USER_ID,
+        clerk_id=SEED_USER_CLERK_ID,
+        email=SEED_USER_EMAIL,
+    )
+    session.add(seed_user)
+    session.flush()
+
     for i in range(1, 4):
         asset = Asset(
             id=f"dummy-seed-asset-{i}",
+            user_id=seed_user.id,
             s3_key=f"seed/raw/dummy-{i}.png",
             ocr_text=f"seeded receipt screenshot {i}",
             ocr_status="done",
@@ -29,6 +42,8 @@ def seed_db(session: Session):
             created_at=now,
             is_seeded=True,
         )
+        session.add(asset)
+        session.flush()  # assigns asset to DB before variant FK references it
 
         variant = AssetVariant(
             asset_id=f"dummy-seed-asset-{i}",
@@ -38,9 +53,6 @@ def seed_db(session: Session):
             size_bytes=max(1, (1024 * i) // 2),
             created_at=now,
         )
-
-        session.add(asset)
-        session.flush()  # assigns asset to DB before variant FK references it
         session.add(variant)
 
     session.commit()
@@ -60,6 +72,11 @@ def cleanup_seeds(session: Session):
 
     for seed in seeds:
         session.delete(seed)
+
+    seed_user = session.query(User).filter_by(email=SEED_USER_EMAIL).first()
+    if seed_user:
+        session.delete(seed_user)
+
     session.commit()
     _seeds_cleaned = True
     print(f"Cleaned up {len(seeds)} seed assets")

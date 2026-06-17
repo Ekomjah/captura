@@ -20,5 +20,5 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 # Copy app
 COPY . .
-CMD ["sh", "-c", "uv run alembic upgrade head && uv run python seed/seed.py && uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
+CMD ["sh", "-c", "uv run alembic upgrade head && uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
 

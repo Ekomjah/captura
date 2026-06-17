@@ -3,60 +3,61 @@ import logging
 import jwt
 from fastapi import Depends, Header, HTTPException
 from models.model import User
+from seed.seed import seed_user_assets
 from services.db_service import get_db
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
 
-def _get_clerk_id(authorization: str | None) -> str | None:
+def _get_token_payload(authorization: str | None) -> dict:
     if not authorization:
-        return None
+        return {}
 
     token = authorization.removeprefix("Bearer ").strip()
     if not token:
-        return None
+        return {}
 
     try:
-        payload = jwt.decode(token, options={"verify_signature": False})
+        return jwt.decode(token, options={"verify_signature": False})
     except Exception:
-        return None
+        return {}
 
-    return payload.get("sub")
+
+def _email_from_payload(payload: dict, clerk_id: str) -> str:
+    for claim in ("email", "email_address", "primary_email_address"):
+        email = payload.get(claim)
+        if isinstance(email, str) and email:
+            return email
+
+    return f"{clerk_id}@clerk.local"
 
 
 def get_current_user(
     authorization: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ) -> User:
-    clerk_id = _get_clerk_id(authorization)
+    payload = _get_token_payload(authorization)
+    clerk_id = payload.get("sub")
 
-    user = None
-    if clerk_id:
-        user = db.query(User).filter(User.clerk_id == clerk_id).first()
-        if not user:
-            logger.warning(
-                "get_current_user: no User row for clerk_id=%s — clerk webhook "
-                "likely never fired for this account; falling back to first user",
-                clerk_id,
-            )
-
-    if not user:
-        try:
-            user = db.query(User).first()
-        except SQLAlchemyError:
-            user = None
-        if user and clerk_id:
-            logger.warning(
-                "get_current_user: serving clerk_id=%s as fallback user_id=%s — "
-                "any /v1/history seeded for the real user will NOT show",
-                clerk_id, user.id,
-            )
-
-    if not user:
+    if not isinstance(clerk_id, str) or not clerk_id:
         raise HTTPException(
             status_code=401,
             detail="Authentication required: no valid user found.",
         )
+
+    user = db.query(User).filter(User.clerk_id == clerk_id).first()
+    if user:
+        return user
+
+    user = User(clerk_id=clerk_id, email=_email_from_payload(payload, clerk_id))
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    seed_user_assets(db, user.id)
+    logger.info(
+        "get_current_user: lazily created and seeded user_id=%s clerk_id=%s",
+        user.id,
+        clerk_id,
+    )
     return user

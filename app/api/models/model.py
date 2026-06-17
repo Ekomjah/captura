@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from db.base import Base
 from sqlalchemy import Computed, DateTime, ForeignKey, Index, String, func
@@ -13,6 +14,7 @@ class User(Base):
     id: Mapped[str] = mapped_column(
         PGUUID(as_uuid=True),
         primary_key=True,
+        default=uuid4,
         server_default=func.gen_random_uuid(),
     )
 

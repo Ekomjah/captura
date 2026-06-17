@@ -118,6 +118,10 @@ async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
 
         existing = db.query(User).filter(User.clerk_id == data["id"]).first()
         if existing:
+            if existing.email.endswith("@clerk.local") and existing.email != email:
+                existing.email = email
+                db.commit()
+            seed_user_assets(db, existing.id)
             logger.info("clerk_webhook: user %s already exists, skipping", data["id"])
             return {"status": "ok", "reason": "already exists"}
 

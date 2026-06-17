@@ -73,6 +73,14 @@ def test_seed_user_assets_creates_namespaced_seeds_with_variants(db: Session):
         assert asset.asset_variants[0].format == "webp"
 
 
+def test_seed_user_assets_is_idempotent(db: Session):
+    seed_user_assets(db, USER_A)
+    seed_user_assets(db, USER_A)
+
+    assert len(_seeds(db, USER_A)) == SEED_ASSETS_PER_USER
+    assert db.query(AssetVariant).count() == SEED_ASSETS_PER_USER
+
+
 def test_first_upload_cleanup_removes_only_callers_seeds(db: Session):
     seed_user_assets(db, USER_A)
     seed_user_assets(db, USER_B)

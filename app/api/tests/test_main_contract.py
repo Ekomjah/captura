@@ -9,6 +9,7 @@ import os
 from collections.abc import Generator
 from uuid import UUID
 
+import jwt
 import pytest
 from db.base import Base
 from fastapi.testclient import TestClient
@@ -84,6 +85,20 @@ def client_with_db(test_session: Session) -> Generator[TestClient]:
 
     app.dependency_overrides[main.get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_current_user
+    try:
+        yield client
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_with_real_auth(test_session: Session) -> Generator[TestClient]:
+    """Override only DB so auth provisioning runs through the real dependency."""
+
+    def override_get_db() -> Generator[Session]:
+        yield test_session
+
+    app.dependency_overrides[main.get_db] = override_get_db
     try:
         yield client
     finally:
@@ -314,6 +329,42 @@ def test_get_history_invalid_page_returns_422(client_with_db: TestClient):
     response = client_with_db.get("/v1/history", params={"page": 0})
 
     assert response.status_code == 422
+
+
+def test_get_history_lazily_creates_and_seeds_missing_clerk_user(
+    client_with_real_auth: TestClient,
+    test_session: Session,
+):
+    token = jwt.encode(
+        {"sub": "user_new_gmail", "email": "new-gmail@example.com"},
+        "test-secret-with-enough-length-for-hs256",
+        algorithm="HS256",
+    )
+
+    response = client_with_real_auth.get(
+        "/v1/history",
+        headers={"Authorization": f"Bearer {token}"},
+        params={"page": 1, "page_size": 20},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == seed_module.SEED_ASSETS_PER_USER
+    assert len(data["images"]) == seed_module.SEED_ASSETS_PER_USER
+
+    user = (
+        test_session.query(User)
+        .filter(User.clerk_id == "user_new_gmail")
+        .one_or_none()
+    )
+    assert user is not None
+    assert user.email == "new-gmail@example.com"
+    assert (
+        test_session.query(Asset)
+        .filter(Asset.user_id == user.id, Asset.is_seeded.is_(True))
+        .count()
+        == seed_module.SEED_ASSETS_PER_USER
+    )
 
 
 def test_get_search_reads_matching_ocr_text_from_db(

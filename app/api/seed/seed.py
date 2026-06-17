@@ -68,10 +68,15 @@ def seed_user_assets(session: Session, user_id) -> None:
     Ids are namespaced by user_id so seeds never collide across accounts.
     """
     now = datetime.utcnow()
+    created = False
 
     for i in range(1, SEED_ASSETS_PER_USER + 1):
+        asset_id = f"seed-{user_id}-{i}"
+        if session.get(Asset, asset_id):
+            continue
+
         asset = Asset(
-            id=f"seed-{user_id}-{i}",
+            id=asset_id,
             user_id=user_id,
             s3_key=f"seed/raw/dummy-{i}.png",
             ocr_text=f"seeded receipt screenshot {i}",
@@ -92,8 +97,10 @@ def seed_user_assets(session: Session, user_id) -> None:
             created_at=now,
         )
         session.add(variant)
+        created = True
 
-    session.commit()
+    if created:
+        session.commit()
 
 
 def cleanup_user_seeds(session: Session, user_id) -> int:

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-from db.session import engine
 from models.model import Asset, AssetVariant, User
 from sqlalchemy.orm import Session
 
@@ -155,5 +154,7 @@ def cleanup_seeds(session: Session):
 
 
 if __name__ == "__main__":
-    with Session(engine) as session:
+    from db.session import get_engine
+
+    with Session(get_engine()) as session:
         seed_db(session)

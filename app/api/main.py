@@ -335,15 +335,3 @@ async def delete_asset(
             detail=detail,
             status_code=status_code,
         ) from e
-
-
-@app.get("/debug/db-url")
-async def debug_db_url():
-    from core.config import get_settings
-
-    url = get_settings().database_url  # or whatever your db url field is called
-    # mask the password
-    import re
-
-    masked = re.sub(r":([^@]+)@", ":***@", str(url))
-    return {"db_url": masked}

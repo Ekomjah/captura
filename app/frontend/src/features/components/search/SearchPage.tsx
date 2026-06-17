@@ -48,8 +48,9 @@ export function SearchPage() {
     page,
     PAGE_SIZE,
   );
+  const items = data?.items ?? [];
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
-  const hasResults = Boolean(data?.items && data.items.length > 0);
+  const hasResults = items.length > 0;
 
   return (
     <div className="mb-10">
@@ -96,7 +97,7 @@ export function SearchPage() {
 
             {!isPending && hasResults && (
               <div className="reveal-stagger space-y-3">
-                {data?.items.map((hit) => (
+                {items.map((hit) => (
                   <div key={hit.asset.id}>
                     <SearchResultCard hit={hit} />
                   </div>
@@ -104,7 +105,7 @@ export function SearchPage() {
               </div>
             )}
 
-            {!isPending && !isError && data?.items.length === 0 && (
+            {!isPending && !isError && items.length === 0 && (
               <ContactSheetEmptyState
                 icon={SearchX}
                 title="No results found"

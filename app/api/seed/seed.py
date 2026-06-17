@@ -59,6 +59,71 @@ def seed_db(session: Session):
     print("Seeded successfully")
 
 
+SEED_ASSETS_PER_USER = 3
+
+
+def seed_user_assets(session: Session, user_id) -> None:
+    """Seed dummy assets (+ webp variants) for a newly created user.
+
+    Ids are namespaced by user_id so seeds never collide across accounts.
+    """
+    now = datetime.utcnow()
+
+    for i in range(1, SEED_ASSETS_PER_USER + 1):
+        asset = Asset(
+            id=f"seed-{user_id}-{i}",
+            user_id=user_id,
+            s3_key=f"seed/raw/dummy-{i}.png",
+            ocr_text=f"seeded receipt screenshot {i}",
+            ocr_status="done",
+            size_bytes=1024 * i,
+            created_at=now,
+            is_seeded=True,
+        )
+        session.add(asset)
+        session.flush()  # assigns asset before variant FK references it
+
+        variant = AssetVariant(
+            asset_id=asset.id,
+            s3_key=f"seed/processed/dummy-{i}.webp",
+            format="webp",
+            content_type="image/webp",
+            size_bytes=max(1, (1024 * i) // 2),
+            created_at=now,
+        )
+        session.add(variant)
+
+    session.commit()
+
+
+def cleanup_user_seeds(session: Session, user_id) -> int:
+    """Delete only *this user's* seeded assets (+ variants). Returns count deleted.
+
+    Set-based delete: one lookup, then bulk-delete variants before assets
+    (asset_variants.asset_id has no ON DELETE CASCADE). Idempotent — a no-op
+    once the user has no seeds left.
+    """
+    seed_ids = [
+        row[0]
+        for row in session.query(Asset.id)
+        .filter(Asset.is_seeded.is_(True), Asset.user_id == user_id)
+        .all()
+    ]
+    if not seed_ids:
+        return 0
+
+    session.query(AssetVariant).filter(AssetVariant.asset_id.in_(seed_ids)).delete(
+        synchronize_session=False
+    )
+    deleted = (
+        session.query(Asset)
+        .filter(Asset.id.in_(seed_ids))
+        .delete(synchronize_session=False)
+    )
+    session.commit()
+    return deleted
+
+
 def cleanup_seeds(session: Session):
     global _seeds_cleaned
 

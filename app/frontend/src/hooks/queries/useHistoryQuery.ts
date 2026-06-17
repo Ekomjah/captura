@@ -12,6 +12,7 @@ export const useHistoryQuery = (
     queryKey: queryKeys.history(userId, starting_page, page_size),
     queryFn: () => fetchAssets(getToken, starting_page, page_size),
     enabled: isLoaded && !!isSignedIn,
+    retry: false,
   });
   return {
     isPending,

@@ -24,6 +24,7 @@ export function HistoryPage() {
   const { userId } = useAuth();
   const [page, setPage] = useState(1);
   const { isPending, isError, error, data } = useHistoryQuery(page, PAGE_SIZE);
+  const images = data?.images ?? [];
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AssetSummary | null>(null);
   const deleteMutation = useDeleteMutation();
@@ -91,9 +92,9 @@ export function HistoryPage() {
           </div>
         )}
 
-        {!isPending && data?.images && data.images.length > 0 && (
+        {!isPending && images.length > 0 && (
           <div className="reveal-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {data.images.map((asset) => (
+            {images.map((asset) => (
               <div key={asset.id}>
                 <AssetDialog asset={asset}>
                   <AssetCard asset={asset} onDelete={setDeleteTarget} />
@@ -103,7 +104,7 @@ export function HistoryPage() {
           </div>
         )}
 
-        {!isPending && !isError && data?.images.length === 0 && (
+        {!isPending && !isError && images.length === 0 && (
           <ContactSheetEmptyState
             icon={ImagePlus}
             title="No assets yet"

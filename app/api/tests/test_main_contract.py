@@ -276,9 +276,9 @@ def test_post_upload_stores_failed_status_when_ocr_fails(
     assert stored_asset.ocr_status == "failed"
 
 
-def test_post_upload_rejects_empty_filename():
+def test_post_upload_rejects_empty_filename(client_with_db: TestClient):
     files = {"file": ("", b"x", "application/octet-stream")}
-    response = client.post("/v1/upload", files=files)
+    response = client_with_db.post("/v1/upload", files=files)
 
     assert response.status_code in (400, 422)
     assert "detail" in response.json()
@@ -310,8 +310,8 @@ def test_get_history_reads_assets_from_db(
     assert image["variants"][0]["size_bytes"] > 0
 
 
-def test_get_history_invalid_page_returns_422():
-    response = client.get("/v1/history", params={"page": 0})
+def test_get_history_invalid_page_returns_422(client_with_db: TestClient):
+    response = client_with_db.get("/v1/history", params={"page": 0})
 
     assert response.status_code == 422
 
@@ -346,8 +346,8 @@ def test_get_search_reads_matching_ocr_text_from_db(
     assert hit["asset"]["variants"][0]["size_bytes"] > 0
 
 
-def test_get_search_missing_q_returns_422():
-    response = client.get("/v1/search")
+def test_get_search_missing_q_returns_422(client_with_db: TestClient):
+    response = client_with_db.get("/v1/search")
 
     assert response.status_code == 422
 

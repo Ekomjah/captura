@@ -14,6 +14,7 @@ export const useSearchQuery = (
     queryKey: queryKeys.search(userId, trimmed, starting_page, page_size),
     queryFn: () => searchAssets(getToken, trimmed, starting_page, page_size),
     enabled: isLoaded && !!isSignedIn && trimmed.length > 0,
+    retry: false,
   });
   return {
     isPending,

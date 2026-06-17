@@ -23,8 +23,11 @@ const getAuthConfig = async (
 
 export const queryKeys = {
   all: (userId?: string | null) => ["assets", userId ?? "anonymous"] as const,
-  history: (userId: string | null | undefined, page: number, page_size: number) =>
-    [...queryKeys.all(userId), "history", { page, page_size }] as const,
+  history: (
+    userId: string | null | undefined,
+    page: number,
+    page_size: number,
+  ) => [...queryKeys.all(userId), "history", { page, page_size }] as const,
   search: (
     userId: string | null | undefined,
     q: string,
@@ -53,7 +56,6 @@ export const uploadAsset = async (
   formData.append("file", file);
   const res = await api.post("/upload", formData, {
     ...(await getAuthConfig(getToken)),
-    timeout: 12000,
   });
   return res.data;
 };

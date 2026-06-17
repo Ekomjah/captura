@@ -23,7 +23,6 @@ from schema.db_schema import (
     UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
-from seed.seed import cleanup_user_seeds, seed_user_assets
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
@@ -121,7 +120,6 @@ async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
             if existing.email.endswith("@clerk.local") and existing.email != email:
                 existing.email = email
                 db.commit()
-            seed_user_assets(db, existing.id)
             logger.info("clerk_webhook: user %s already exists, skipping", data["id"])
             return {"status": "ok", "reason": "already exists"}
 
@@ -129,10 +127,11 @@ async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
-        seed_user_assets(db, user.id)
         logger.info(
-            "clerk_webhook: seeded user_id=%s clerk_id=%s email=%s",
-            user.id, data["id"], email,
+            "clerk_webhook: created user_id=%s clerk_id=%s email=%s",
+            user.id,
+            data["id"],
+            email,
         )
 
     if event_type == "user.deleted":
@@ -246,7 +245,6 @@ async def upload_file(
             size_bytes=upload_variant.size_bytes,
             created_at=datetime.utcnow(),
         )
-        cleanup_user_seeds(db, current_user.id)
         store_asset(db_store, db)
         store_asset_variant(variant_data, upload_result.asset_id, db)
         return resp
@@ -337,3 +335,15 @@ async def delete_asset(
             detail=detail,
             status_code=status_code,
         ) from e
+
+
+@app.get("/debug/db-url")
+async def debug_db_url():
+    from core.config import get_settings
+
+    url = get_settings().database_url  # or whatever your db url field is called
+    # mask the password
+    import re
+
+    masked = re.sub(r":([^@]+)@", ":***@", str(url))
+    return {"db_url": masked}

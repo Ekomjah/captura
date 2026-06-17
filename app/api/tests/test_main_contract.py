@@ -214,8 +214,6 @@ def test_post_upload_stores_ocr_text_in_db(
     test_session: Session,
     mock_storage_and_conversion,
 ):
-    _seed_dummy_assets_for_cleanup(test_session)
-
     async def fake_extract_ocr_text(_file_bytes: bytes) -> str:
         return "hello from screenshot"
 
@@ -258,12 +256,6 @@ def test_post_upload_stores_ocr_text_in_db(
     assert stored_variant.size_bytes > 0
     assert stored_variant.s3_key == "uploads/processed/asset-123/screenshot.webp"
     assert stored_variant.content_type == "image/webp"
-    remaining_seed_rows = (
-        test_session.query(Asset)
-        .filter(Asset.id.like(f"{TEST_SEED_ASSET_ID_PREFIX}%"))
-        .count()
-    )
-    assert remaining_seed_rows == 0
 
 
 def test_post_upload_stores_failed_status_when_ocr_fails(
@@ -331,7 +323,7 @@ def test_get_history_invalid_page_returns_422(client_with_db: TestClient):
     assert response.status_code == 422
 
 
-def test_get_history_lazily_creates_and_seeds_missing_clerk_user(
+def test_get_history_lazily_creates_missing_clerk_user(
     client_with_real_auth: TestClient,
     test_session: Session,
 ):
@@ -349,8 +341,9 @@ def test_get_history_lazily_creates_and_seeds_missing_clerk_user(
 
     assert response.status_code == 200
     data = response.json()
-    assert data["total"] == seed_module.SEED_ASSETS_PER_USER
-    assert len(data["images"]) == seed_module.SEED_ASSETS_PER_USER
+    # lazy provisioning creates the user but seeds nothing
+    assert data["total"] == 0
+    assert data["images"] == []
 
     user = (
         test_session.query(User)
@@ -360,10 +353,7 @@ def test_get_history_lazily_creates_and_seeds_missing_clerk_user(
     assert user is not None
     assert user.email == "new-gmail@example.com"
     assert (
-        test_session.query(Asset)
-        .filter(Asset.user_id == user.id, Asset.is_seeded.is_(True))
-        .count()
-        == seed_module.SEED_ASSETS_PER_USER
+        test_session.query(Asset).filter(Asset.user_id == user.id).count() == 0
     )
 
 

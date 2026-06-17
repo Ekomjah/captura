@@ -3,7 +3,6 @@ import logging
 import jwt
 from fastapi import Depends, Header, HTTPException
 from models.model import User
-from seed.seed import seed_user_assets
 from services.db_service import get_db
 from sqlalchemy.orm import Session
 
@@ -54,9 +53,8 @@ def get_current_user(
     db.add(user)
     db.commit()
     db.refresh(user)
-    seed_user_assets(db, user.id)
     logger.info(
-        "get_current_user: lazily created and seeded user_id=%s clerk_id=%s",
+        "get_current_user: lazily created user_id=%s clerk_id=%s",
         user.id,
         clerk_id,
     )

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     clerk_secret_key: str = ""
     clerk_jwks_url: str = ""
     clerk_authorized_parties: Annotated[list[str], NoDecode] = []
+    database_url: str = ""
 
     @field_validator("allowed_origins", mode="before")
     @classmethod

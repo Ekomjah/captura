@@ -23,7 +23,7 @@ from schema.db_schema import (
     UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
-from seed.seed import cleanup_seeds
+from seed.seed import cleanup_user_seeds, seed_user_assets
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
@@ -33,8 +33,7 @@ from services.s3_service import (
     upload_raw_file,
     upload_variant_file,
 )
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from svix.webhooks import Webhook
 
@@ -59,8 +58,7 @@ for logger_name in ["repo", "services", "models", "schema"]:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=env_config.allowed_origins,
-    allow_origin_regex=env_config.allowed_origin_regex,
+    allow_origin_regex=".*",  # TEMP: allow every origin (reflects origin back)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,35 +89,55 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
 
 
 @app.post("/webhooks/clerk")
-async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
     headers = dict(request.headers)
+
+    if not env_config.clerk_webhook_secret:
+        logger.error("clerk_webhook: CLERK_WEBHOOK_SECRET is empty")
+        raise HTTPException(status_code=500, detail="Webhook secret not configured")
 
     wh = Webhook(env_config.clerk_webhook_secret)
     try:
         event = wh.verify(payload, headers)
-    except Exception:
+    except Exception as exc:
+        logger.warning("clerk_webhook: signature verify failed: %s", exc)
         raise HTTPException(status_code=400, detail="Invalid webhook")
 
-    if event["type"] == "user.created":
+    event_type = event.get("type")
+    logger.info("clerk_webhook: received %s", event_type)
+
+    if event_type == "user.created":
         data = event["data"]
         email_addresses = data.get("email_addresses", [])
         email = email_addresses[0]["email_address"] if email_addresses else None
 
         if not email:
+            logger.warning("clerk_webhook: user.created skipped (no email)")
             return {"status": "skipped", "reason": "no email address"}
+
+        existing = db.query(User).filter(User.clerk_id == data["id"]).first()
+        if existing:
+            logger.info("clerk_webhook: user %s already exists, skipping", data["id"])
+            return {"status": "ok", "reason": "already exists"}
 
         user = User(clerk_id=data["id"], email=email)
         db.add(user)
-        await db.commit()
+        db.commit()
+        db.refresh(user)
+        seed_user_assets(db, user.id)
+        logger.info(
+            "clerk_webhook: seeded user_id=%s clerk_id=%s email=%s",
+            user.id, data["id"], email,
+        )
 
-    if event["type"] == "user.deleted":
+    if event_type == "user.deleted":
         clerk_id = event["data"]["id"]
-        result = await db.execute(select(User).where(User.clerk_id == clerk_id))
-        user = result.scalar_one_or_none()
+        user = db.query(User).filter(User.clerk_id == clerk_id).first()
         if user:
-            await db.delete(user)
-            await db.commit()
+            db.delete(user)
+            db.commit()
+            logger.info("clerk_webhook: deleted user clerk_id=%s", clerk_id)
 
     return {"status": "ok"}
 
@@ -224,13 +242,21 @@ async def upload_file(
             size_bytes=upload_variant.size_bytes,
             created_at=datetime.utcnow(),
         )
+        cleanup_user_seeds(db, current_user.id)
         store_asset(db_store, db)
         store_asset_variant(variant_data, upload_result.asset_id, db)
-        cleanup_seeds(db)
         return resp
     except UploadException:
         raise
+    except SQLAlchemyError as exc:
+        error, detail, status_code = _map_db_exception(exc, action="upload")
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        )
     except Exception as exc:
+        logger.exception("Unexpected error during upload")
         error, detail, status_code = map_s3_exception(exc)
         raise UploadException(
             error=error,

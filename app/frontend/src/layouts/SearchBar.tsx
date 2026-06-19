@@ -21,20 +21,19 @@ export function MenuSearchBar() {
     setQuery(urlQuery);
   }
 
-  const handleClick = () => navigate("/dashboard/search");
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSearchClick();
-    }
-  };
-
-  const handleSearchClick = () => {
+  const handleClick = () => {
     if (query.trim() !== "") {
       navigate(`/dashboard/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <InputGroup className="w-40 rounded-xl bg-card/60 transition-[box-shadow,border-color,width] duration-300 focus-within:w-56 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15 sm:w-56 sm:focus-within:w-72">
       <InputGroupInput
@@ -49,7 +48,7 @@ export function MenuSearchBar() {
         <Search className="text-muted-foreground" />
       </InputGroupAddon>
       <InputGroupAddon align="inline-end">
-        <InputGroupButton variant="outline" onClick={handleSearchClick}>
+        <InputGroupButton variant="outline" onClick={handleClick}>
           Search
         </InputGroupButton>
       </InputGroupAddon>

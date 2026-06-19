@@ -13,7 +13,7 @@ export function ProtectedRoute() {
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="font-mono text-xs uppercase tracking-[0.2em] flex text-muted-foreground">
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Loading...
         </span>
@@ -25,3 +25,5 @@ export function ProtectedRoute() {
 
   return <Outlet />;
 }
+
+

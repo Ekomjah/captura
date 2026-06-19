@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { LandingPage } from "@/features/landing/LandingPage";
 import { HistoryPage } from "@/features/components/history/HistoryPage";
 import { SearchPage } from "@/features/components/search/SearchPage";
+import { SettingsPage } from "@/features/components/settings/SettingsPage";
 
 export const routes: RouteObject[] = [
   {
@@ -29,6 +30,10 @@ export const routes: RouteObject[] = [
           {
             path: "search",
             element: <SearchPage />,
+          },
+          {
+            path: "settings",
+            element: <SettingsPage />,
           },
         ],
       },

@@ -1,4 +1,5 @@
 import { AppearanceSection } from "./AppearanceSection";
+import { ProfileSection } from "./ProfileSection";
 
 export function SettingsPage() {
   return (
@@ -16,6 +17,7 @@ export function SettingsPage() {
       </header>
 
       <div className="space-y-5">
+        <ProfileSection />
         <AppearanceSection />
       </div>
     </div>

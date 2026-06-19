@@ -21,7 +21,7 @@ export interface UploadResponse {
   s3_key: string;
   content_type: string;
   size_bytes: number;
-  ocr_snippet: string | null;
+  ocr_text: string | null;
   ocr_status: ocrStatus;
   variants: UploadVariant[];
 }
@@ -32,7 +32,7 @@ export interface AssetSummary {
   created_at: string;
   s3_key: string;
   thumbnail_url: string;
-  ocr_snippet: string | null;
+  ocr_text: string | null;
   ocr_status: ocrStatus;
   variants: UploadVariant[];
 }

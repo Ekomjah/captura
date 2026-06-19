@@ -64,10 +64,10 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
             </time>
           </CardDescription>
         </CardHeader>
-        {asset.ocr_snippet && (
+        {asset.ocr_text && (
           <CardContent className="mt-auto">
             <p className="rounded-md border-l-[3px] border-primary/40 bg-muted/50 px-3 py-2.5 text-sm font-medium italic leading-relaxed text-muted-foreground">
-              {shortenText(asset.ocr_snippet, 60)}
+              {shortenText(asset.ocr_text, 60)}
             </p>
           </CardContent>
         )}

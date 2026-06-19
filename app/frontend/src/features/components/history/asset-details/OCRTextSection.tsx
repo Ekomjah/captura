@@ -3,12 +3,12 @@ import { CheckCircle, Clock } from "lucide-react";
 import type { OcrStatus } from "@/lib/types/api";
 
 interface OCRTextSectionProps {
-  ocr_snippet: string | null;
+  ocr_text: string | null;
   ocr_status: OcrStatus;
 }
 
 export function OCRTextSection({
-  ocr_snippet,
+  ocr_text,
   ocr_status,
 }: OCRTextSectionProps) {
   return (
@@ -17,7 +17,7 @@ export function OCRTextSection({
         <h3 className="text-sm font-semibold text-foreground">
           Extracted OCR text
         </h3>
-        {ocr_status === "done" && ocr_snippet && (
+        {ocr_status === "done" && ocr_text && (
           <Badge
             variant="default"
             className="flex items-center gap-1"
@@ -28,13 +28,13 @@ export function OCRTextSection({
         )}
       </div>
 
-      {ocr_status === "done" && ocr_snippet && (
+      {ocr_status === "done" && ocr_text && (
         <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-muted/60 p-4 font-mono text-xs leading-relaxed wrap-break-word">
-          {ocr_snippet}
+          {ocr_text}
         </pre>
       )}
 
-      {ocr_status === "done" && !ocr_snippet && (
+      {ocr_status === "done" && !ocr_text && (
         <p className="text-sm text-muted-foreground">No text detected in this image</p>
       )}
 

@@ -19,7 +19,7 @@ export function AssetDetailsModal({ asset }: AssetDetailsModalProps) {
           <VariantsSection variants={asset.variants} />
           <Separator />
           <OCRTextSection
-            ocr_snippet={asset.ocr_snippet}
+            ocr_text={asset.ocr_text}
             ocr_status={asset.ocr_status}
           />
         </AssetSidebarPane>

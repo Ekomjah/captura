@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { OcrStatus, UploadResponse } from "@/lib/types/api";
+import { shortenText } from "@/lib/utils/textShortener";
 import { Check } from "lucide-react";
 
 type UploadSuccessSummaryProps = {
@@ -30,8 +31,8 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export function UploadSuccessSummary({ response }: UploadSuccessSummaryProps) {
-  const { asset_id, variants, ocr_status, ocr_snippet } = response;
-  const showSnippet = ocr_snippet != null && ocr_snippet.trim().length > 0;
+  const { asset_id, variants, ocr_status, ocr_text } = response;
+  const showSnippet = ocr_text != null && ocr_text.trim().length > 0;
 
   return (
     <div
@@ -90,7 +91,7 @@ export function UploadSuccessSummary({ response }: UploadSuccessSummaryProps) {
           <div className="space-y-1.5">
             <FieldLabel>OCR snippet</FieldLabel>
             <p className="rounded-md border-l-[3px] border-primary/40 bg-muted/50 px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word text-muted-foreground">
-              {ocr_snippet}
+              {shortenText(ocr_text!, 100)}
             </p>
           </div>
         )}

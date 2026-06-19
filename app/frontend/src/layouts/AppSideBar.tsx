@@ -107,9 +107,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarAccount />
       <SidebarFooter className="border-t border-sidebar-border p-3">
-        <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
-          Appearance
-        </p>
         <SidebarMenu className="flex-row gap-1 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-1">
           <SidebarMenuItem className="flex-1 p-0">
             <SidebarMenuButton
@@ -121,16 +118,7 @@ export function AppSidebar() {
               <Sun />
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem className="flex-1 p-0">
-            <SidebarMenuButton
-              onClick={() => setTheme("system")}
-              isActive={theme === "system"}
-              tooltip="System theme"
-              className={themeButtonClass(theme === "system")}
-            >
-              <MonitorCog />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+
           <SidebarMenuItem className="flex-1 p-0">
             <SidebarMenuButton
               onClick={() => setTheme("dark")}
@@ -139,6 +127,16 @@ export function AppSidebar() {
               className={themeButtonClass(theme === "dark")}
             >
               <Moon />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem className="flex-1 p-0">
+            <SidebarMenuButton
+              onClick={() => setTheme("system")}
+              isActive={theme === "system"}
+              tooltip="System theme"
+              className={themeButtonClass(theme === "system")}
+            >
+              <MonitorCog />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

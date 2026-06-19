@@ -22,9 +22,6 @@ export function SidebarAccount() {
 
   return (
     <div className="border-t border-sidebar-border px-3 py-3">
-      <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
-        Account
-      </p>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton

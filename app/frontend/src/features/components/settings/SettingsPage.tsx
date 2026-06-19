@@ -1,4 +1,6 @@
+import { AccountSection } from "./AccountSection";
 import { AppearanceSection } from "./AppearanceSection";
+import { DangerZoneSection } from "./DangerZoneSection";
 import { ProfileSection } from "./ProfileSection";
 
 export function SettingsPage() {
@@ -19,6 +21,8 @@ export function SettingsPage() {
       <div className="space-y-5">
         <ProfileSection />
         <AppearanceSection />
+        <AccountSection />
+        <DangerZoneSection />
       </div>
     </div>
   );

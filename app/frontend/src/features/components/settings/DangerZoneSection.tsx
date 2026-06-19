@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "./SettingsSection";
 
-const CONFIRM_PHRASE = "D elete my account";
+const CONFIRM_PHRASE = "Delete my account";
 
 export function DangerZoneSection() {
   const { user, isLoaded } = useUser();

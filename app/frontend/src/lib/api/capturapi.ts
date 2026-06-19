@@ -56,6 +56,8 @@ export const uploadAsset = async (
   formData.append("file", file);
   const res = await api.post("/upload", formData, {
     ...(await getAuthConfig(getToken)),
+    // OCR + S3 round trips can exceed the default 30s on large images.
+    timeout: 60000,
   });
   return res.data;
 };

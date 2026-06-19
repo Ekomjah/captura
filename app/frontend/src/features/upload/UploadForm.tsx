@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useUploadMutation } from "@/hooks/mutations/useUploadMutation";
-import { getApiError } from "@/lib/api/getApiError";
+import { getUploadError } from "@/lib/api/getUploadError";
 import type { UploadResponse } from "@/lib/types/api";
 import { LoaderCircle, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -86,10 +86,8 @@ export function UploadForm({
     onPendingChange?.(isPending);
   }, [isPending, onPendingChange]);
 
-  const apiError = isError ? getApiError(error) : null;
-  const errorMessage =
-    apiError?.detail ??
-    "Upload failed. Please try again with a valid image file.";
+  const apiError = isError ? getUploadError(error) : null;
+  const errorMessage = apiError?.detail ?? "";
 
   const showForm = !isSuccess || !data;
 

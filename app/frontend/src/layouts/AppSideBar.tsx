@@ -20,6 +20,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useSearch } from "@/context/SearchContext";
 import { cn } from "@/lib/utils";
 import { CapturaMark } from "@/components/CapturaMark";
+import { SidebarAccount } from "./SidebarAccount";
 
 const navItemClass = cn(
   "relative my-0.5 h-10 gap-3 rounded-xl px-3 font-medium text-sidebar-foreground/80 transition-colors",
@@ -104,6 +105,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
+      <SidebarAccount />
       <SidebarFooter className="border-t border-sidebar-border p-3">
         <p className="px-3 pb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
           Appearance

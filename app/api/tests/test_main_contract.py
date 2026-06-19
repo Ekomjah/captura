@@ -230,7 +230,7 @@ def test_post_upload_stores_ocr_text_in_db(
         "s3_key": "uploads/raw/asset-123/screenshot.png",
         "content_type": "image/png",
         "size_bytes": 8,
-        "ocr_snippet": "hello from screenshot",
+        "ocr_text": "hello from screenshot",
         "ocr_status": "done",
         "variants": [
             {
@@ -275,7 +275,7 @@ def test_post_upload_stores_failed_status_when_ocr_fails(
     assert response.status_code == 201
     data = response.json()
     assert data["ocr_status"] == "failed"
-    assert data["ocr_snippet"] is None
+    assert data["ocr_text"] is None
 
     stored_asset = test_session.get(Asset, "asset-123")
     assert stored_asset is not None
@@ -311,7 +311,7 @@ def test_get_history_reads_assets_from_db(
     assert image["id"] == "asset-123"
     assert image["s3_key"] == "uploads/raw/asset-123/screenshot.png"
     assert image["ocr_status"] == "done"
-    assert image["ocr_snippet"] == "hello from screenshot with connection reset"
+    assert image["ocr_text"] == "hello from screenshot with connection reset"
     assert image["thumbnail_url"] == "uploads/processed/asset-123/screenshot.webp"
     assert image["variants"][0]["format"] == "webp"
     assert image["variants"][0]["size_bytes"] > 0
@@ -382,7 +382,7 @@ def test_get_search_reads_matching_ocr_text_from_db(
     assert "connection" in (hit["match_context"] or "")
     assert hit["asset"]["id"] == "asset-123"
     assert hit["asset"]["ocr_status"] == "done"
-    assert hit["asset"]["ocr_snippet"] == "hello from screenshot with connection reset"
+    assert hit["asset"]["ocr_text"] == "hello from screenshot with connection reset"
     assert hit["asset"]["variants"][0]["format"] == "webp"
     assert hit["asset"]["variants"][0]["size_bytes"] > 0
 

@@ -198,11 +198,8 @@ async def upload_file(
         ocr_text, ocr_status = None, "pending"
         try:
             ocr_text = await extract_ocr_text(file_content)
-            # For simplicity, we just take the first 100 chars as a snippet
-            ocr_snippet = ocr_text[:100] if ocr_text else None
             ocr_status = "done"
         except OCRExtractionError:
-            ocr_snippet = None
             ocr_status = "failed"
 
         logger.info(
@@ -215,7 +212,6 @@ async def upload_file(
                 "variant_format": upload_variant.format.value,
                 "filename": file.filename,
                 "ocr_status": ocr_status,
-                "ocr_snippet": ocr_snippet,
             }
         )
 
@@ -225,7 +221,7 @@ async def upload_file(
             s3_key=upload_result.s3_key,
             content_type=upload_result.content_type,
             size_bytes=upload_result.size_bytes,
-            ocr_snippet=ocr_snippet,
+            ocr_text=ocr_text,
             ocr_status=ocr_status,
             variants=[upload_variant],
         )

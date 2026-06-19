@@ -19,8 +19,6 @@ def _asset_to_summary(asset: Asset) -> AssetSummary:
     )
     thumbnail_url = webp_variant.s3_key if webp_variant else ""
 
-    ocr_snippet = asset.ocr_text[:100] if asset.ocr_text else None
-
     variants = [
         UploadVariant(
             s3_key=asset_variant.s3_key,
@@ -36,7 +34,7 @@ def _asset_to_summary(asset: Asset) -> AssetSummary:
         created_at=asset.created_at,
         s3_key=str(asset.s3_key),
         thumbnail_url=thumbnail_url,
-        ocr_snippet=ocr_snippet,
+        ocr_text=asset.ocr_text,
         ocr_status=asset.ocr_status
         if asset.ocr_status in ("pending", "done", "failed")
         else "pending",

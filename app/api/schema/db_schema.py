@@ -13,7 +13,7 @@ class AssetSummary(BaseModel):
     created_at: datetime
     s3_key: str
     thumbnail_url: str
-    ocr_snippet: str | None = None
+    ocr_text: str | None = None
     ocr_status: Literal["pending", "done", "failed"]
     variants: list[UploadVariant]
 

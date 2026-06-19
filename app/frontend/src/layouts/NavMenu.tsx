@@ -4,8 +4,10 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { Bell } from "lucide-react";
+import { Link } from "react-router";
 import { MenuSearchBar } from "./SearchBar";
-import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/react";
+import { SignInButton, SignUpButton, useUser } from "@clerk/react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export function NavMenu() {
   const { isSignedIn } = useUser();
@@ -30,7 +32,13 @@ export function NavMenu() {
 
         {isSignedIn ? (
           <NavigationMenuItem>
-            <UserButton />
+            <Link
+              to="/dashboard/settings"
+              aria-label="Open account settings"
+              className="rounded-full outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              <UserAvatar />
+            </Link>
           </NavigationMenuItem>
         ) : (
           <>

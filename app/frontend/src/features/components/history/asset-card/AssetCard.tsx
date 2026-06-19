@@ -34,13 +34,13 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         role="button"
         tabIndex={0}
         {...props}
-        className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer outline-none hover:-translate-y-1 hover:ring-2 hover:ring-primary/60 hover:shadow-[0_24px_48px_-24px_oklch(0_0_0/0.4)] focus-visible:ring-2 focus-visible:ring-primary/60"
+        className="group/card relative mx-auto w-full max-w-70 pt-0! cursor-pointer outline-none hover:-translate-y-1 hover:ring-2 hover:ring-primary/60 hover:shadow-[0_24px_48px_-24px_oklch(0_0_0/0.4)] focus-visible:ring-2 focus-visible:ring-primary/60"
       >
         {onDelete && (
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute top-2.5 right-2.5 z-10 border border-border/60 bg-background/70 opacity-0 backdrop-blur-md transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover/card:opacity-100 focus-visible:opacity-100"
+            className="absolute top-2.5 right-2.5 z-10 border border-border/60 bg-background/70 backdrop-blur-md transition-opacity hover:bg-destructive/10 hover:text-destructive [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(asset);

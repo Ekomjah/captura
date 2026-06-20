@@ -7,11 +7,14 @@ Story 3.1 insert/read behavior end-to-end while pair-programming.
 
 import os
 from collections.abc import Generator
+from uuid import UUID
 
+import jwt
 import pytest
 from db.base import Base
 from fastapi.testclient import TestClient
-from models.model import Asset, AssetVariant
+from models.model import Asset, AssetVariant, User
+from repo.auth.dependencies import get_current_user
 from schema.upload import UploadVariant, VariantFormat
 from services.ocr_service import OCRExtractionError
 from sqlalchemy import String, create_engine
@@ -27,6 +30,8 @@ from main import app
 
 client = TestClient(app)
 TEST_SEED_ASSET_ID_PREFIX = "dummy-seed-asset-"
+TEST_USER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+TEST_CLERK_ID = "user_test_123"
 
 
 @pytest.fixture
@@ -56,6 +61,8 @@ def test_session() -> Generator[Session]:
 
     db = TestingSessionLocal()
     seed_module._seeds_cleaned = False
+    db.add(User(id=TEST_USER_ID, clerk_id=TEST_CLERK_ID, email="test@example.com"))
+    db.commit()
     try:
         yield db
     finally:
@@ -67,6 +74,26 @@ def test_session() -> Generator[Session]:
 @pytest.fixture
 def client_with_db(test_session: Session) -> Generator[TestClient]:
     """Override FastAPI's DB dependency with the test session."""
+
+    def override_get_db() -> Generator[Session]:
+        yield test_session
+
+    async def override_current_user() -> User:
+        user = test_session.get(User, TEST_USER_ID)
+        assert user is not None
+        return user
+
+    app.dependency_overrides[main.get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_current_user
+    try:
+        yield client
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_with_real_auth(test_session: Session) -> Generator[TestClient]:
+    """Override only DB so auth provisioning runs through the real dependency."""
 
     def override_get_db() -> Generator[Session]:
         yield test_session
@@ -119,6 +146,7 @@ def _seed_asset(
     asset = Asset(
         id=asset_id,
         s3_key=f"uploads/raw/{asset_id}/screenshot.png",
+        user_id=TEST_USER_ID,
         ocr_text=ocr_text,
         ocr_status=ocr_status,
         size_bytes=8,
@@ -153,6 +181,7 @@ def _seed_dummy_assets_for_cleanup(db: Session) -> None:
         asset_id = f"{TEST_SEED_ASSET_ID_PREFIX}{i}"
         asset = Asset(
             id=asset_id,
+            user_id=TEST_USER_ID,
             s3_key=f"seed/raw/dummy-{i}.png",
             ocr_text=f"seeded text {i}",
             ocr_status="done",
@@ -185,8 +214,6 @@ def test_post_upload_stores_ocr_text_in_db(
     test_session: Session,
     mock_storage_and_conversion,
 ):
-    _seed_dummy_assets_for_cleanup(test_session)
-
     async def fake_extract_ocr_text(_file_bytes: bytes) -> str:
         return "hello from screenshot"
 
@@ -203,7 +230,7 @@ def test_post_upload_stores_ocr_text_in_db(
         "s3_key": "uploads/raw/asset-123/screenshot.png",
         "content_type": "image/png",
         "size_bytes": 8,
-        "ocr_snippet": "hello from screenshot",
+        "ocr_text": "hello from screenshot",
         "ocr_status": "done",
         "variants": [
             {
@@ -229,12 +256,6 @@ def test_post_upload_stores_ocr_text_in_db(
     assert stored_variant.size_bytes > 0
     assert stored_variant.s3_key == "uploads/processed/asset-123/screenshot.webp"
     assert stored_variant.content_type == "image/webp"
-    remaining_seed_rows = (
-        test_session.query(Asset)
-        .filter(Asset.id.like(f"{TEST_SEED_ASSET_ID_PREFIX}%"))
-        .count()
-    )
-    assert remaining_seed_rows == 0
 
 
 def test_post_upload_stores_failed_status_when_ocr_fails(
@@ -254,7 +275,7 @@ def test_post_upload_stores_failed_status_when_ocr_fails(
     assert response.status_code == 201
     data = response.json()
     assert data["ocr_status"] == "failed"
-    assert data["ocr_snippet"] is None
+    assert data["ocr_text"] is None
 
     stored_asset = test_session.get(Asset, "asset-123")
     assert stored_asset is not None
@@ -262,9 +283,9 @@ def test_post_upload_stores_failed_status_when_ocr_fails(
     assert stored_asset.ocr_status == "failed"
 
 
-def test_post_upload_rejects_empty_filename():
+def test_post_upload_rejects_empty_filename(client_with_db: TestClient):
     files = {"file": ("", b"x", "application/octet-stream")}
-    response = client.post("/v1/upload", files=files)
+    response = client_with_db.post("/v1/upload", files=files)
 
     assert response.status_code in (400, 422)
     assert "detail" in response.json()
@@ -290,16 +311,50 @@ def test_get_history_reads_assets_from_db(
     assert image["id"] == "asset-123"
     assert image["s3_key"] == "uploads/raw/asset-123/screenshot.png"
     assert image["ocr_status"] == "done"
-    assert image["ocr_snippet"] == "hello from screenshot with connection reset"
+    assert image["ocr_text"] == "hello from screenshot with connection reset"
     assert image["thumbnail_url"] == "uploads/processed/asset-123/screenshot.webp"
     assert image["variants"][0]["format"] == "webp"
     assert image["variants"][0]["size_bytes"] > 0
 
 
-def test_get_history_invalid_page_returns_422():
-    response = client.get("/v1/history", params={"page": 0})
+def test_get_history_invalid_page_returns_422(client_with_db: TestClient):
+    response = client_with_db.get("/v1/history", params={"page": 0})
 
     assert response.status_code == 422
+
+
+def test_get_history_lazily_creates_missing_clerk_user(
+    client_with_real_auth: TestClient,
+    test_session: Session,
+):
+    token = jwt.encode(
+        {"sub": "user_new_gmail", "email": "new-gmail@example.com"},
+        "test-secret-with-enough-length-for-hs256",
+        algorithm="HS256",
+    )
+
+    response = client_with_real_auth.get(
+        "/v1/history",
+        headers={"Authorization": f"Bearer {token}"},
+        params={"page": 1, "page_size": 20},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    # lazy provisioning creates the user but seeds nothing
+    assert data["total"] == 0
+    assert data["images"] == []
+
+    user = (
+        test_session.query(User)
+        .filter(User.clerk_id == "user_new_gmail")
+        .one_or_none()
+    )
+    assert user is not None
+    assert user.email == "new-gmail@example.com"
+    assert (
+        test_session.query(Asset).filter(Asset.user_id == user.id).count() == 0
+    )
 
 
 def test_get_search_reads_matching_ocr_text_from_db(
@@ -327,13 +382,13 @@ def test_get_search_reads_matching_ocr_text_from_db(
     assert "connection" in (hit["match_context"] or "")
     assert hit["asset"]["id"] == "asset-123"
     assert hit["asset"]["ocr_status"] == "done"
-    assert hit["asset"]["ocr_snippet"] == "hello from screenshot with connection reset"
+    assert hit["asset"]["ocr_text"] == "hello from screenshot with connection reset"
     assert hit["asset"]["variants"][0]["format"] == "webp"
     assert hit["asset"]["variants"][0]["size_bytes"] > 0
 
 
-def test_get_search_missing_q_returns_422():
-    response = client.get("/v1/search")
+def test_get_search_missing_q_returns_422(client_with_db: TestClient):
+    response = client_with_db.get("/v1/search")
 
     assert response.status_code == 422
 

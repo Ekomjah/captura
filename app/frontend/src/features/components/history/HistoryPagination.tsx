@@ -38,8 +38,8 @@ export function HistoryPagination({
   const pages = buildPages(currentPage, totalPages);
 
   return (
-    <Pagination>
-      <PaginationContent>
+    <Pagination className="my-8">
+      <PaginationContent className="rounded-2xl border border-border/70 bg-card/50 p-1.5 backdrop-blur-sm">
         <PaginationItem>
           <PaginationPrevious
             href="#"

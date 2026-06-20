@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+
 type UploadErrorAlertProps = {
   message: string;
   errorCode?: string;
@@ -6,15 +8,18 @@ type UploadErrorAlertProps = {
 export function UploadErrorAlert({ message, errorCode }: UploadErrorAlertProps) {
   return (
     <div
-      className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm"
+      className="flex gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm"
       role="alert"
       aria-live="polite"
     >
-      <p className="font-medium text-destructive">Upload failed</p>
-      {errorCode && (
-        <p className="text-xs text-muted-foreground mt-0.5">{errorCode}</p>
-      )}
-      <p className="text-muted-foreground mt-1">{message}</p>
+      <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" />
+      <div className="space-y-0.5">
+        <p className="font-medium text-destructive">Upload failed</p>
+        {errorCode && (
+          <p className="font-data text-xs text-muted-foreground">{errorCode}</p>
+        )}
+        <p className="text-muted-foreground">{message}</p>
+      </div>
     </div>
   );
 }

@@ -9,11 +9,10 @@ export function AssetSidebarHeader({ asset }: AssetSidebarHeaderProps) {
   const displayName = getDisplayName(asset);
 
   return (
-    <div className="bg-card px-6 py-4 border-b border-border">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-        Asset Metadata
-      </p>
-      <h2 className="text-sm font-medium truncate">{displayName}</h2>
+    <div className="border-b border-border bg-card px-6 py-5">
+      <h2 className="truncate font-heading text-lg font-semibold tracking-tight">
+        {displayName}
+      </h2>
     </div>
   );
 }

@@ -26,7 +26,7 @@ class UploadResponse(BaseModel):
     s3_key: str
     content_type: str
     size_bytes: int
-    ocr_snippet: str | None = None
+    ocr_text: str | None = None
     ocr_status: str = Field(..., examples=["pending", "done", "failed"])
     variants: list[UploadVariant]
 

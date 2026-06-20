@@ -25,10 +25,22 @@ class Settings(BaseSettings):
     # Optional regex for dynamic origins (e.g. Vercel preview deployments).
     # Example: ``https://captura-frontend-.*-ekomjah\.vercel\.app``
     allowed_origin_regex: str | None = None
+    clerk_webhook_secret: str = ""
+    clerk_secret_key: str = ""
+    clerk_jwks_url: str = ""
+    clerk_authorized_parties: Annotated[list[str], NoDecode] = []
+    database_url: str = ""
 
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [o.strip() for o in value.split(",") if o.strip()]
+        return value
+
+    @field_validator("clerk_authorized_parties", mode="before")
+    @classmethod
+    def _split_authorized_parties(cls, value: object) -> object:
         if isinstance(value, str):
             return [o.strip() for o in value.split(",") if o.strip()]
         return value

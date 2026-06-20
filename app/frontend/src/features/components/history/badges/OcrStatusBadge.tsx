@@ -29,7 +29,7 @@ export function OcrStatusBadge({ status }: OcrStatusBadgeProps) {
 
   return (
     <Badge variant={variant} className="flex items-center gap-1">
-      <Icon className="size-3" />
+      <Icon className={status === "pending" ? "size-3 animate-spin" : "size-3"} />
       {label}
     </Badge>
   );

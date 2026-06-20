@@ -16,14 +16,15 @@ export function AssetCardThumbnail({ asset }: AssetCardThumbnailProps) {
   }
 
   return (
-    <div className="aspect-video w-full overflow-hidden">
+    <div className="relative aspect-video w-full overflow-hidden bg-muted">
       <img
         src={previewUrl}
         onLoad={() => setHasError(false)}
         alt={`Asset ${asset.id}`}
-        className="w-full h-full object-cover"
+        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
         onError={() => setHasError(true)}
       />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-background/25 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100" />
     </div>
   );
 }

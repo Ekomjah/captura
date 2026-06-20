@@ -32,15 +32,15 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
       <Card
         role="button"
         tabIndex={0}
-        className="flex w-full cursor-pointer flex-row items-stretch gap-4 rounded-2xl p-3 outline-none transition-all hover:ring-2 hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-primary/50"
+        className="group flex w-full cursor-pointer flex-row items-stretch gap-4 rounded-2xl p-3 outline-none transition-all duration-200 hover:-translate-y-0.5 hover:ring-2 hover:ring-primary/60 hover:shadow-[0_24px_48px_-24px_oklch(0_0_0/0.4)] focus-visible:ring-2 focus-visible:ring-primary/60"
       >
         {/* Thumbnail */}
-        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted sm:size-28">
+        <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted ring-1 ring-border/60 sm:size-28">
           {previewUrl && !imgError ? (
             <img
               src={previewUrl}
               alt={displayName}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
               onError={() => setImgError(true)}
             />
           ) : (
@@ -52,18 +52,18 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <div className="flex items-start justify-between gap-3">
             <h3
-              className="truncate font-semibold text-foreground"
+              className="truncate font-semibold text-foreground transition-colors group-hover:text-primary"
               title={displayName}
             >
               {displayName}
             </h3>
-            <time className="shrink-0 text-xs text-muted-foreground">
+            <time className="font-data shrink-0 text-xs text-muted-foreground">
               {formatAssetDate(asset.created_at)}
             </time>
           </div>
 
           {/* Matched OCR context with the search term highlighted */}
-          <p className="line-clamp-2 rounded border-l-3 border-primary/30 bg-secondary/30 px-3 py-2 text-sm italic leading-relaxed text-muted-foreground">
+          <p className="line-clamp-2 rounded-md border-l-[3px] border-primary/40 bg-muted/50 px-3 py-2 text-sm italic leading-relaxed text-muted-foreground">
             <HighlightedText text={context} query={matched_text} />
           </p>
 
@@ -73,7 +73,7 @@ export function SearchResultCard({ hit }: { hit: SearchHit }) {
             {totalSizeMb > 0 && (
               <>
                 <span aria-hidden>•</span>
-                <span>{totalSizeMb.toFixed(2)} MB</span>
+                <span className="font-data">{totalSizeMb.toFixed(2)} MB</span>
               </>
             )}
           </div>

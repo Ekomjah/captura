@@ -27,6 +27,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Clerk skill install artifacts (agent-local, not project source)
+/app/frontend/.agents/
+/app/frontend/.claude/skills/
+/app/frontend/skills-lock.json
+
 # Terraform
 .terraform/
 *.tfstate

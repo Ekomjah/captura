@@ -36,9 +36,9 @@ export function ActionFooter({ asset }: ActionFooterProps) {
     }
   };
   const handleCopyText = async () => {
-    if (asset.ocr_snippet) {
+    if (asset.ocr_text) {
       try {
-        await navigator.clipboard.writeText(asset.ocr_snippet);
+        await navigator.clipboard.writeText(asset.ocr_text);
         setIsCopying(true);
         toast.success("Text copied to clipboard!");
         setTimeout(() => setIsCopying(false), 5000);
@@ -50,25 +50,27 @@ export function ActionFooter({ asset }: ActionFooterProps) {
   };
 
   const hasWebP = asset.variants.some((v) => v.format === "webp");
-  const canCopy = asset.ocr_status === "done" && asset.ocr_snippet;
+  const canCopy = asset.ocr_status === "done" && asset.ocr_text;
 
   return (
-    <div className="border-t border-border px-6 py-4 flex gap-3">
+    <div className="flex gap-2.5 border-t border-border/70 bg-card/50 px-6 py-4 backdrop-blur-sm">
       <Button
         onClick={handleDownloadWebP}
         disabled={!hasWebP}
+        size="lg"
         className="flex-1"
       >
-        <Download className="size-4 mr-2" />
+        <Download className="size-4" />
         Download
       </Button>
       <Button
         onClick={handleCopyText}
         disabled={!canCopy || isCopying}
         variant="outline"
+        size="lg"
         className="flex-1"
       >
-        <Copy className="size-4 mr-2" />
+        <Copy className="size-4" />
         {isCopying ? "Copied!" : "Copy Text"}
       </Button>
     </div>

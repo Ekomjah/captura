@@ -34,6 +34,9 @@ services:
       - "8080:8000"
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      CLERK_WEBHOOK_SECRET: ${CLERK_WEBHOOK_SECRET}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL}
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES}
       
     depends_on:
       db:

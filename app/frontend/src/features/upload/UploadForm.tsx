@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useUploadMutation } from "@/hooks/mutations/useUploadMutation";
-import { getApiError } from "@/lib/api/getApiError";
+import { getUploadError } from "@/lib/api/getUploadError";
 import type { UploadResponse } from "@/lib/types/api";
 import { LoaderCircle, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -11,9 +11,14 @@ import { UploadZone } from "./UploadZone";
 type UploadFormProps = {
   className?: string;
   onSuccess?: (response: UploadResponse) => void;
+  onPendingChange?: (pending: boolean) => void;
 };
 
-export function UploadForm({ className, onSuccess }: UploadFormProps) {
+export function UploadForm({
+  className,
+  onSuccess,
+  onPendingChange,
+}: UploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -77,10 +82,12 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
     };
   }, [previewUrl]);
 
-  const apiError = isError ? getApiError(error) : null;
-  const errorMessage =
-    apiError?.detail ??
-    "Upload failed. Please try again with a valid image file.";
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
+
+  const apiError = isError ? getUploadError(error) : null;
+  const errorMessage = apiError?.detail ?? "";
 
   const showForm = !isSuccess || !data;
 
@@ -89,7 +96,14 @@ export function UploadForm({ className, onSuccess }: UploadFormProps) {
       {isSuccess && data && (
         <div className="space-y-4 mb-4">
           <UploadSuccessSummary response={data} />
-          <Button type="button" variant="outline" onClick={handleReset}>
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={handleReset}
+            className="w-full"
+          >
+            <RotateCcw className="size-4" />
             Upload another
           </Button>
         </div>

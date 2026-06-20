@@ -27,5 +27,14 @@ export function getApiError(error: unknown): ErrorResponse | null {
     }
   }
 
+  if (isAxiosError(error)) {
+    return {
+      error: "NetworkError",
+      detail:
+        error.message ||
+        "The API request failed. Check the browser console or backend logs.",
+    };
+  }
+
   return null;
 }

@@ -49,9 +49,11 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  closeDisabled = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  closeDisabled?: boolean
 }) {
   return (
     <DialogPortal>
@@ -71,6 +73,7 @@ function DialogContent({
               variant="ghost"
               className="absolute top-4 right-4 bg-secondary"
               size="icon-sm"
+              disabled={closeDisabled}
             >
               <XIcon
               />

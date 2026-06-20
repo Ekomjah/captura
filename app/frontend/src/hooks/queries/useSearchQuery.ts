@@ -1,5 +1,6 @@
 import { queryKeys, searchAssets } from "@/lib/api/capturapi";
 import { getApiError } from "@/lib/api/getApiError";
+import { useAuth } from "@clerk/react";
 import { useQuery } from "@tanstack/react-query";
 
 export const useSearchQuery = (
@@ -7,11 +8,13 @@ export const useSearchQuery = (
   starting_page: number = 1,
   page_size: number = 20,
 ) => {
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const trimmed = query.trim();
   const { isPending, isError, error, data, isFetching } = useQuery({
-    queryKey: queryKeys.search(trimmed, starting_page, page_size),
-    queryFn: () => searchAssets(trimmed, starting_page, page_size),
-    enabled: trimmed.length > 0,
+    queryKey: queryKeys.search(userId, trimmed, starting_page, page_size),
+    queryFn: () => searchAssets(getToken, trimmed, starting_page, page_size),
+    enabled: isLoaded && !!isSignedIn && trimmed.length > 0,
+    retry: false,
   });
   return {
     isPending,

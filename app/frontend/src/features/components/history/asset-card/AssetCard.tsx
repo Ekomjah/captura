@@ -34,13 +34,13 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
         role="button"
         tabIndex={0}
         {...props}
-        className="relative mx-auto w-full max-w-70 pt-0! cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 focus:ring-2 focus:ring-primary/50 outline-none"
+        className="group/card relative mx-auto w-full max-w-70 pt-0! cursor-pointer outline-none hover:-translate-y-1 hover:ring-2 hover:ring-primary/60 hover:shadow-[0_24px_48px_-24px_oklch(0_0_0/0.4)] focus-visible:ring-2 focus-visible:ring-primary/60"
       >
         {onDelete && (
           <Button
             variant="ghost"
             size="icon-sm"
-            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-destructive/10 hover:text-destructive"
+            className="absolute top-2.5 right-2.5 z-10 border border-border/60 bg-background/70 backdrop-blur-md transition-opacity hover:bg-destructive/10 hover:text-destructive [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               onDelete(asset);
@@ -55,17 +55,19 @@ export const AssetCard = forwardRef<HTMLDivElement, AssetCardProps>(
           <CardAction>
             <AssetCardBadges asset={asset} />
           </CardAction>
-          <CardTitle>{shortenText(displayName, 30)}</CardTitle>
+          <CardTitle className="truncate">
+            {shortenText(displayName, 30)}
+          </CardTitle>
           <CardDescription>
-            <time className="text-xs text-muted-foreground block">
+            <time className="font-data block text-xs text-muted-foreground">
               {formattedDate}
             </time>
           </CardDescription>
         </CardHeader>
-        {asset.ocr_snippet && (
+        {asset.ocr_text && (
           <CardContent className="mt-auto">
-            <p className="bg-secondary/30 text-muted-foreground px-3 py-2.5 text-sm font-medium italic leading-relaxed border-l-3 border-primary/30 rounded">
-              {shortenText(asset.ocr_snippet, 60)}
+            <p className="rounded-md border-l-[3px] border-primary/40 bg-muted/50 px-3 py-2.5 text-sm font-medium italic leading-relaxed text-muted-foreground">
+              {shortenText(asset.ocr_text, 60)}
             </p>
           </CardContent>
         )}

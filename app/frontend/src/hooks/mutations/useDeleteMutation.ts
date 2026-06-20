@@ -1,4 +1,5 @@
 import { queryKeys, deleteAsset } from "@/lib/api/capturapi";
+import { useAuth } from "@clerk/react";
 import {
   useMutation,
   useQueryClient,
@@ -7,12 +8,13 @@ import {
 
 export function useDeleteMutation(): UseMutationResult<void, Error, string> {
   const queryClient = useQueryClient();
+  const { getToken, userId } = useAuth();
 
   return useMutation({
-    mutationFn: (assetId: string) => deleteAsset(assetId),
+    mutationFn: (assetId: string) => deleteAsset(getToken, assetId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [...queryKeys.all(), "history"],
+        queryKey: [...queryKeys.all(userId), "history"],
       });
     },
     onError: (error) => {

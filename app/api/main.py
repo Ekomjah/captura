@@ -4,10 +4,12 @@ from typing import Annotated
 
 from core.config import get_settings
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Query, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models.map_db_exception import _map_db_exception
+from models.model import User
+from repo.auth.dependencies import get_current_user
 from repo.delete_asset import delete_asset_from_db
 from repo.get_assets import get_all_assets
 from repo.search_assets import search_assets
@@ -21,7 +23,6 @@ from schema.db_schema import (
     UpsertRepoVariant,
 )
 from schema.upload import UploadResponse, VariantFormat
-from seed.seed import cleanup_seeds
 from services.db_service import get_db
 from services.img_service import ImageConversionError, convert_to_webp
 from services.ocr_service import OCRExtractionError, extract_ocr_text
@@ -31,13 +32,15 @@ from services.s3_service import (
     upload_raw_file,
     upload_variant_file,
 )
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from svix.webhooks import Webhook
 
-settings = get_settings()
+env_config = get_settings()
 
 app = FastAPI(
     title="Captura API",
-    docs_url="/docs" if settings.environment != "production" else None,
+    docs_url="/docs" if env_config.environment != "production" else None,
     version="0.1.0",
 )
 load_dotenv()
@@ -54,8 +57,7 @@ for logger_name in ["repo", "services", "models", "schema"]:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_origin_regex=settings.allowed_origin_regex,
+    allow_origin_regex=".*",  # TEMP: allow every origin (reflects origin back)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,6 +87,64 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
     }[fmt]
 
 
+@app.post("/webhooks/clerk")
+async def clerk_webhook(request: Request, db: Session = Depends(get_db)):
+    payload = await request.body()
+    headers = dict(request.headers)
+
+    if not env_config.clerk_webhook_secret:
+        logger.error("clerk_webhook: CLERK_WEBHOOK_SECRET is empty")
+        raise HTTPException(status_code=500, detail="Webhook secret not configured")
+
+    wh = Webhook(env_config.clerk_webhook_secret)
+    try:
+        event = wh.verify(payload, headers)
+    except Exception as exc:
+        logger.warning("clerk_webhook: signature verify failed: %s", exc)
+        raise HTTPException(status_code=400, detail="Invalid webhook")
+
+    event_type = event.get("type")
+    logger.info("clerk_webhook: received %s", event_type)
+
+    if event_type == "user.created":
+        data = event["data"]
+        email_addresses = data.get("email_addresses", [])
+        email = email_addresses[0]["email_address"] if email_addresses else None
+
+        if not email:
+            logger.warning("clerk_webhook: user.created skipped (no email)")
+            return {"status": "skipped", "reason": "no email address"}
+
+        existing = db.query(User).filter(User.clerk_id == data["id"]).first()
+        if existing:
+            if existing.email.endswith("@clerk.local") and existing.email != email:
+                existing.email = email
+                db.commit()
+            logger.info("clerk_webhook: user %s already exists, skipping", data["id"])
+            return {"status": "ok", "reason": "already exists"}
+
+        user = User(clerk_id=data["id"], email=email)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info(
+            "clerk_webhook: created user_id=%s clerk_id=%s email=%s",
+            user.id,
+            data["id"],
+            email,
+        )
+
+    if event_type == "user.deleted":
+        clerk_id = event["data"]["id"]
+        user = db.query(User).filter(User.clerk_id == clerk_id).first()
+        if user:
+            db.delete(user)
+            db.commit()
+            logger.info("clerk_webhook: deleted user clerk_id=%s", clerk_id)
+
+    return {"status": "ok"}
+
+
 @app.post(
     "/v1/upload",
     status_code=201,
@@ -98,7 +158,11 @@ def _content_type_for_format(fmt: VariantFormat) -> str:
     },
     tags=["assets"],
 )
-async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_file(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     try:
         if not file.filename:
             raise UploadException(
@@ -134,11 +198,8 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         ocr_text, ocr_status = None, "pending"
         try:
             ocr_text = await extract_ocr_text(file_content)
-            # For simplicity, we just take the first 100 chars as a snippet
-            ocr_snippet = ocr_text[:100] if ocr_text else None
             ocr_status = "done"
         except OCRExtractionError:
-            ocr_snippet = None
             ocr_status = "failed"
 
         logger.info(
@@ -151,7 +212,6 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
                 "variant_format": upload_variant.format.value,
                 "filename": file.filename,
                 "ocr_status": ocr_status,
-                "ocr_snippet": ocr_snippet,
             }
         )
 
@@ -161,12 +221,13 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             s3_key=upload_result.s3_key,
             content_type=upload_result.content_type,
             size_bytes=upload_result.size_bytes,
-            ocr_snippet=ocr_snippet,
+            ocr_text=ocr_text,
             ocr_status=ocr_status,
             variants=[upload_variant],
         )
         db_store: UpsertRepo = UpsertRepo(
             id=upload_result.asset_id,
+            user_id=str(current_user.id),
             ocr_text=ocr_text,
             ocr_status=ocr_status,
             s3_key=upload_result.s3_key,
@@ -182,11 +243,18 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         )
         store_asset(db_store, db)
         store_asset_variant(variant_data, upload_result.asset_id, db)
-        cleanup_seeds(db)
         return resp
     except UploadException:
         raise
+    except SQLAlchemyError as exc:
+        error, detail, status_code = _map_db_exception(exc, action="upload")
+        raise UploadException(
+            error=error,
+            detail=detail,
+            status_code=status_code,
+        )
     except Exception as exc:
+        logger.exception("Unexpected error during upload")
         error, detail, status_code = map_s3_exception(exc)
         raise UploadException(
             error=error,
@@ -198,11 +266,12 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
 @app.get("/v1/history", response_model=PaginatedAssetsResponse, tags=["assets"])
 async def get_history(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     try:
-        return await get_all_assets(db, page, page_size)
+        return await get_all_assets(db, page, page_size, user_id=current_user.id)
     except Exception as e:
         error, detail, status_code = _map_db_exception(e, action="history query")
         raise UploadException(
@@ -218,9 +287,10 @@ async def search_endpoint(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
-        return await search_assets(db, q, page, page_size)
+        return await search_assets(db, q, page, page_size, user_id=current_user.id)
     except Exception as e:
         error, detail, status_code = _map_db_exception(e, action="search query")
         raise UploadException(
@@ -234,9 +304,8 @@ async def search_endpoint(
 async def delete_asset(
     asset_id: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    # Delete from S3 first — if this fails the DB stays untouched and the
-    # user can retry. Only proceed to DB deletion after S3 succeeds.
     try:
         delete_asset_from_s3(asset_id)
     except Exception as e:
@@ -248,7 +317,7 @@ async def delete_asset(
         ) from e
 
     try:
-        delete_asset_from_db(asset_id, db)
+        delete_asset_from_db(asset_id, db, current_user.id)
     except ValueError:
         raise UploadException(
             error="NotFound",

@@ -1,7 +1,8 @@
 import { Field, FieldGroup } from "@/components/ui/field";
+import { shortenText } from "@/lib/utils/textShortener";
 interface AssetDetailsProps {
   thumbnail_url: string;
-  ocr_snippet: string | null;
+  ocr_text: string | null;
   id: string;
   fileName: string;
 }
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 export function AssetDetails({
   thumbnail_url,
-  ocr_snippet,
+  ocr_text,
   id,
   fileName,
 }: AssetDetailsProps) {
@@ -47,7 +48,7 @@ export function AssetDetails({
               className="w-full"
               disabled
               name="snippet"
-              defaultValue={ocr_snippet ?? "No OCR snippet available"}
+              defaultValue={ocr_text ? shortenText(ocr_text, 100) : "No OCR snippet available"}
             />
           </Field>
         </FieldGroup>

@@ -14,16 +14,10 @@ def _variant_format_from_db(value: str) -> VariantFormat:
 def _asset_to_summary(asset: Asset) -> AssetSummary:
     # Thumbnail: persisted WebP variant key only (no filename inference on raw asset).
     webp_variant = next(
-        (
-            av
-            for av in asset.asset_variants
-            if av.format == VariantFormat.webp.value
-        ),
+        (av for av in asset.asset_variants if av.format == VariantFormat.webp.value),
         None,
     )
     thumbnail_url = webp_variant.s3_key if webp_variant else ""
-
-    ocr_snippet = asset.ocr_text[:100] if asset.ocr_text else None
 
     variants = [
         UploadVariant(
@@ -40,7 +34,7 @@ def _asset_to_summary(asset: Asset) -> AssetSummary:
         created_at=asset.created_at,
         s3_key=str(asset.s3_key),
         thumbnail_url=thumbnail_url,
-        ocr_snippet=ocr_snippet,
+        ocr_text=asset.ocr_text,
         ocr_status=asset.ocr_status
         if asset.ocr_status in ("pending", "done", "failed")
         else "pending",
@@ -48,12 +42,16 @@ def _asset_to_summary(asset: Asset) -> AssetSummary:
     )
 
 
-async def get_db_assets(db: Session, page: int = 1, page_size: int = 10) -> list[Asset]:
+async def get_db_assets(
+    db: Session, page: int = 1, page_size: int = 10, user_id: str = None
+) -> list[Asset]:
     try:
         offset = (page - 1) * page_size
+        query = db.query(Asset)
+        if user_id:
+            query = query.filter(Asset.user_id == user_id)
         db_assets = (
-            db.query(Asset)
-            .order_by(Asset.created_at.desc())
+            query.order_by(Asset.created_at.desc())
             .offset(offset)
             .limit(page_size)
             .all()
@@ -65,11 +63,15 @@ async def get_db_assets(db: Session, page: int = 1, page_size: int = 10) -> list
 
 
 async def get_all_assets(
-    db: Session, page: int = 1, page_size: int = 10
+    db: Session, page: int = 1, page_size: int = 10, user_id: str = None
 ) -> PaginatedAssetsResponse:
     try:
-        db_assets = await get_db_assets(db, page, page_size)
-        total = db.query(Asset).count()
+        db_assets = await get_db_assets(db, page, page_size, user_id=user_id)
+        total = (
+            db.query(Asset).filter(Asset.user_id == user_id).count()
+            if user_id
+            else db.query(Asset).count()
+        )
 
         assets = [_asset_to_summary(asset) for asset in db_assets]
         return PaginatedAssetsResponse(
